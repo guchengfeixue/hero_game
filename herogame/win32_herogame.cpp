@@ -22,11 +22,12 @@ struct win32_offscreen_buffer
 	int Width;
 	int Height;
 	int Pitch;
-	int BytesPerPixel;
 };
 
-global_variable bool Running;
+global_variable bool GlobalRunning;
 global_variable win32_offscreen_buffer GlobalBackbuffer;
+
+// Chandler Carruth: LLVM compiler optimisition
 
 struct win32_window_dimension
 {
@@ -48,7 +49,10 @@ internal void RenderWeirdGradient(int XOffset, int YOffset)
 {
 	int Width = GlobalBackbuffer.Width;
 	int Height = GlobalBackbuffer.Height;
-	int Pitch = Width * GlobalBackbuffer.BytesPerPixel;
+
+	int BytesPerPixel = 4;
+
+	int Pitch = Width * BytesPerPixel;
 	uint8 *Row = (uint8 *)GlobalBackbuffer.Memory;
 	for (int Y = 0; Y < GlobalBackbuffer.Height; ++Y)
 	{
@@ -70,6 +74,8 @@ internal void RenderWeirdGradient(int XOffset, int YOffset)
 
 internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, int Height)
 {
+	int BytesPerPixel = 4;
+
 	if (Buffer->Memory)
 		VirtualFree(Buffer->Memory, 0, MEM_RELEASE);
 
@@ -83,12 +89,11 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, i
 	Buffer->Info.bmiHeader.biBitCount = 32;
 	Buffer->Info.bmiHeader.biCompression = BI_RGB;
 
-	int BitmapMemorySize = (Buffer->Width * Buffer->Height) * Buffer->BytesPerPixel;
+	int BitmapMemorySize = (Buffer->Width * Buffer->Height) * BytesPerPixel;
 	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
 }
 
-internal void Win32DisplayBufferInWindow(HDC DeviceContext, int WindowWidth, int WindowHeight, 
-	win32_offscreen_buffer Buffer, int X, int Y, int Width, int Height)
+internal void Win32DisplayBufferInWindow(HDC DeviceContext, int WindowWidth, int WindowHeight, win32_offscreen_buffer Buffer)
 {
 	StretchDIBits(
 		DeviceContext,
@@ -113,13 +118,13 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
 		case WM_DESTROY:
 		{
-			Running = false;
+			GlobalRunning = false;
 			OutputDebugStringA("WM_DESTROY\n");
 		}break;
 
 		case WM_CLOSE:
 		{
-			Running = false;
+			GlobalRunning = false;
 			OutputDebugStringA("WM_QUIT\n");
 		}break;
 
@@ -140,7 +145,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
 			win32_window_dimension Dimension = Win32GetWindowDimension(hwnd);
 			//Win32ResizeDIBSection(&GlobalBackbuffer, Dimension.Width, Dimension.Height);
-			Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height, GlobalBackbuffer, X, Y, Width, Height);
+			Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height, GlobalBackbuffer);
 
 			EndPaint(hwnd, &Paint);
 		}break;
@@ -158,13 +163,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	WNDCLASS WindowClass = {};
 
 	//TODO : check CS_HREDRAW CS_VREDRAW OWNDC still matter
-	WindowClass.style			= CS_HREDRAW | CS_VREDRAW;
+	WindowClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	WindowClass.lpfnWndProc		= Win32MainWindowCallback;
 	//WindowClass.hInstance		= hInstance;
 	WindowClass.hInstance		= GetModuleHandle(0);
 	WindowClass.lpszClassName	= "HeroGameWindowClass";
 	
-	GlobalBackbuffer.BytesPerPixel = 4;
 	Win32ResizeDIBSection(&GlobalBackbuffer, 1280, 720);
 
 	if (RegisterClassA(&WindowClass))
@@ -185,31 +189,30 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 		if (WindowHandle)
 		{
+			//NOTE: 使用了CS_OWNER标志后，保持一个device context 并一直使用，不与其他共享
+			HDC DeviceContext = GetDC(WindowHandle);
+
 			int XOffset = 0;
 			int YOffset = 0;
 
 			MSG Message;
-			Running = true;
-			while(Running)
+			GlobalRunning = true;
+			while(GlobalRunning)
 			{
 				while (PeekMessageA(&Message, 0, 0, 0, PM_REMOVE))
 				{
 					if (Message.message == WM_QUIT)
-						Running = false;
+						GlobalRunning = false;
 					TranslateMessage(&Message);
 					DispatchMessageA(&Message);
 				}
 				RenderWeirdGradient(XOffset, YOffset);
-
-				HDC DeviceContext = GetDC(WindowHandle);
 				win32_window_dimension Dimension = Win32GetWindowDimension(WindowHandle);
-
-				Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height, GlobalBackbuffer,0, 0, Dimension.Width, Dimension.Height);
-				ReleaseDC(WindowHandle, DeviceContext);
-
+				Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height, GlobalBackbuffer);
 				++XOffset;
 				++YOffset;
 			}
+			ReleaseDC(WindowHandle, DeviceContext);
 		}
 		else
 		{
