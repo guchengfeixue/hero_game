@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include <Xinput.h>
+#include <dsound.h>
 
 #define internal static 
 #define local_persist static 
@@ -66,6 +67,9 @@ X_INPUT_SET_STATE(XInputSetStateStub)
 global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
 
+#define DIRECT_SOUND_CREATE(name) HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter)
+typedef DIRECT_SOUND_CREATE(direct_sound_create);
+
 internal void Win32LoadXInput(void)
 {
 	HMODULE XInputLibrary = LoadLibraryA("xinput1_4.dll");
@@ -77,6 +81,88 @@ internal void Win32LoadXInput(void)
 		if (!XInputGetState) { XInputGetState = XInputGetStateStub; }
 		XInputSetState = (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
 		if (!XInputSetState) { XInputSetState = XInputSetStateStub; }
+	}
+	else
+	{
+		//TODO: Diagnostic
+	}
+}
+
+internal void Win32InitSound(HWND Window, int32 SamplesPerSecond, int32 BufferSize)
+{
+	HMODULE DSoundLibrary = LoadLibraryA("dsound.dll");
+	if (DSoundLibrary)
+	{
+		direct_sound_create *DirectSoundCreate = (direct_sound_create *)
+			GetProcAddress(DSoundLibrary, "DirectSoundCreate");
+
+		LPDIRECTSOUND DirectSound;
+		if (DirectSoundCreate && SUCCEEDED(DirectSoundCreate(0, &DirectSound, 0)))
+		{
+			WAVEFORMATEX WaveFormat = {};
+			WaveFormat.wFormatTag = WAVE_FORMAT_PCM;
+			WaveFormat.nChannels = 2;
+			WaveFormat.nSamplesPerSec = SamplesPerSecond;
+			WaveFormat.wBitsPerSample = 16;
+			WaveFormat.nBlockAlign = (WaveFormat.nChannels * WaveFormat.wBitsPerSample) / 8;
+			WaveFormat.nAvgBytesPerSec = WaveFormat.nSamplesPerSec * WaveFormat.nBlockAlign;
+			WaveFormat.cbSize = 0;
+			if (SUCCEEDED(DirectSound->SetCooperativeLevel(Window, DSSCL_PRIORITY)))
+			{
+				DSBUFFERDESC BufferDescription = {};
+				BufferDescription.dwSize = sizeof(BufferDescription);
+				BufferDescription.dwFlags = DSBCAPS_PRIMARYBUFFER;
+
+				//NOTO: "create" a primary buffer
+				//TODO: DSBCAPS_GLOBALFOCUS?
+				LPDIRECTSOUNDBUFFER PrimaryBuffer;
+				if (SUCCEEDED(DirectSound->CreateSoundBuffer(&BufferDescription, &PrimaryBuffer, 0)))
+				{
+					HRESULT Error = PrimaryBuffer->SetFormat(&WaveFormat);
+					if (SUCCEEDED(Error))
+					{
+						//NOTO: we have finally set the format!
+						OutputDebugStringA("create primary buffer\n");
+					}
+					else
+					{
+						//TODO: diagnostic
+					}
+				}
+				else
+				{
+					//TODO: diagnostic
+				}
+			}
+			else
+			{
+				//TODO: diagnostic
+			}
+			//TODO: DSBCAPS_GETCURRENTPOSITION2
+			DSBUFFERDESC BufferDescription = {};
+			BufferDescription.dwSize = sizeof(BufferDescription);
+			BufferDescription.dwFlags = 0;
+			BufferDescription.dwBufferBytes = BufferSize;
+			BufferDescription.lpwfxFormat = &WaveFormat;
+			LPDIRECTSOUNDBUFFER SecondaryBuffer;
+			HRESULT Error = DirectSound->CreateSoundBuffer(&BufferDescription, &SecondaryBuffer, 0);
+			if (SUCCEEDED(Error))
+			{
+				OutputDebugStringA("create secondary buffer\n");
+			}
+			else
+			{
+				//TODO: Diagnostic
+			}
+		}
+		else
+		{
+			//TODO: Diagnostic
+		}
+	}
+	else
+	{
+		//TODO: Diagnostic
 	}
 }
 
@@ -129,7 +215,7 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, i
 	Buffer->Info.bmiHeader.biCompression = BI_RGB;
 
 	int BitmapMemorySize = (Buffer->Width * Buffer->Height) * BytesPerPixel;
-	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 	Buffer->Pitch = Width * BytesPerPixel;
 }
 
@@ -223,6 +309,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 					if (WasDown)
 						OutputDebugStringA("WasDown");
 					OutputDebugStringA("\n");
+					GlobalRunning = false;
 				}
 				else if (VKCode == VK_SPACE)
 				{
@@ -287,6 +374,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 		if (WindowHandle)
 		{
+			Win32InitSound(WindowHandle, 48000, 48000 * sizeof(int16) * 2);
 			//NOTE: 使用了CS_OWNER标志后，保持一个device context 并一直使用，不与其他共享
 			HDC DeviceContext = GetDC(WindowHandle);
 
