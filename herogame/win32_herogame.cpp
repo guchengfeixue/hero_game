@@ -10,6 +10,7 @@ typedef int8_t int8;
 typedef int16_t int16;
 typedef int32_t int32;
 typedef int64_t int64;
+typedef int32 bool32;
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -50,7 +51,7 @@ global_variable x_input_set_state *XInputSetState_;
 typedef X_INPUT_GET_STATE(x_input_get_state);
 X_INPUT_GET_STATE(XInputGetStateStub)
 {
-	return (0);
+	return (ERROR_DEVICE_NOT_CONNECTED);		//设备没有连上
 }
 global_variable x_input_get_state *XInputGetState_ = XInputGetStateStub;
 #define XInputGetState XInputGetState_
@@ -60,18 +61,22 @@ global_variable x_input_get_state *XInputGetState_ = XInputGetStateStub;
 typedef X_INPUT_SET_STATE(x_input_set_state);
 X_INPUT_SET_STATE(XInputSetStateStub)
 {
-	return (0);
+	return (ERROR_DEVICE_NOT_CONNECTED);
 }
 global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
 
 internal void Win32LoadXInput(void)
 {
-	HMODULE XInputLibrary = LoadLibraryA("xinput1_3.dll");
+	HMODULE XInputLibrary = LoadLibraryA("xinput1_4.dll");
+	if (!XInputLibrary)
+		XInputLibrary = LoadLibraryA("xinput1_3.dll");
 	if (XInputLibrary)
 	{
-		XInputGetState_ = (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
-		XInputSetState_ = (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
+		XInputGetState = (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
+		if (!XInputGetState) { XInputGetState = XInputGetStateStub; }
+		XInputSetState = (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
+		if (!XInputSetState) { XInputSetState = XInputSetStateStub; }
 	}
 }
 
@@ -224,6 +229,9 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 
 				}
 			}
+			bool32 AltKeyWasDown = (Lparam & (1 << 29));
+			if ((VKCode == VK_F4) && AltKeyWasDown)
+				GlobalRunning = false;
 
 		}break;
 
@@ -320,8 +328,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						int16 StickX = Pad->sThumbLX;
 						int16 StickY = Pad->sThumbLY;
 
-						//if (AButton)
-						//	YOffset += 2;
+						XOffset += StickX >> 12;
+						YOffset += StickY >> 12;
 					}
 					else
 					{
