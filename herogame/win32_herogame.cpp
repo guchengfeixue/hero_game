@@ -1,32 +1,13 @@
 #include <windows.h>
-#include <stdint.h>
 #include <Xinput.h>
 #include <dsound.h>
 #include <stdio.h>
 
 //TODO: Implement sine outselves
 #include <math.h>
+#include "defines.h"
 
-#define internal static 
-#define local_persist static 
-#define global_variable static
-#define sprintf sprintf_s
-
-#define Pi32 3.14159265359f
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-typedef int32 bool32;
-
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
-typedef float real32;
-typedef double real64;
+#include "herogame.h"
 
 struct win32_offscreen_buffer
 {
@@ -189,27 +170,6 @@ internal win32_window_dimension Win32GetWindowDimension(HWND Window)
 	Result.Width = ClientRect.right - ClientRect.left;
 	Result.Height = ClientRect.bottom - ClientRect.top;
 	return (Result);
-}
-
-internal void RenderWeirdGradient(win32_offscreen_buffer *Buffer, int XOffset, int YOffset)
-{
-	uint8 *Row = (uint8 *)Buffer->Memory;
-	for (int Y = 0; Y < Buffer->Height; ++Y)
-	{
-		uint32 *Pixel = (uint32 *)Row;
-		for (int X = 0; X < Buffer->Width; ++X)
-		{
-			uint8 Blue = (X + XOffset);
-			uint8 Green = (Y + YOffset);
-			/*
-			Memory:		BB GG RR xx
-			Register:	xx RR GG BB
-			Pixel (32-bits)
-			*/
-			*Pixel++ = ((Green << 8) | Blue);
-		}
-		Row += Buffer->Pitch;
-	}
 }
 
 internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, int Height)
@@ -523,7 +483,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				//Vibration.wRightMotorSpeed = 60000;
 				//XInputSetState(0, &Vibration);
 
-				RenderWeirdGradient(&GlobalBackbuffer, XOffset, YOffset);
+				game_offscreen_buffer GameBuffer;
+				GameBuffer.Memory = GlobalBackbuffer.Memory;
+				GameBuffer.Width = GlobalBackbuffer.Width;
+				GameBuffer.Height = GlobalBackbuffer.Height;
+				GameBuffer.Pitch = GlobalBackbuffer.Pitch;
+
+				GameUpdateAndRender(&GameBuffer, XOffset, YOffset);
 
 				//NOTE: DirectSound output test
 				DWORD PlayCursor;
