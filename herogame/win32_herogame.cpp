@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <Xinput.h>
 #include <dsound.h>
+#include <stdio.h>
 
 //TODO: Implement sine outselves
 #include <math.h>
@@ -9,6 +10,7 @@
 #define internal static 
 #define local_persist static 
 #define global_variable static
+#define sprintf sprintf_s
 
 #define Pi32 3.14159265359f
 
@@ -406,18 +408,23 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int)
 {
+	LARGE_INTEGER PerfCountFrequencyResult;
+	QueryPerformanceFrequency(&PerfCountFrequencyResult);
+	int64 PerfCountFrequency = PerfCountFrequencyResult.QuadPart;
+	
 	Win32LoadXInput();
 
 	WNDCLASS WindowClass = {};
+	Win32ResizeDIBSection(&GlobalBackbuffer, 1280, 720);
 
-	//TODO : check CS_HREDRAW CS_VREDRAW OWNDC still matter
+
 	WindowClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	WindowClass.lpfnWndProc		= Win32MainWindowCallback;
-	//WindowClass.hInstance		= hInstance;
-	WindowClass.hInstance		= GetModuleHandle(0);
+	WindowClass.hInstance		= hInstance;
+	//WindowClass.hInstance		= GetModuleHandle(0);
 	WindowClass.lpszClassName	= "HeroGameWindowClass";
+
 	
-	Win32ResizeDIBSection(&GlobalBackbuffer, 1280, 720);
 
 	if (RegisterClassA(&WindowClass))
 	{
@@ -459,6 +466,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			Win32FillSoundBuffer(&SoundOutput, 0, SoundOutput.SecondaryBufferSize);
 			GlobalSecondaryBuffer->Play(0, 0, DSBPLAY_LOOPING);
 
+			LARGE_INTEGER LastCounter;
+			QueryPerformanceCounter(&LastCounter);
+			uint64 LastCycleCount = __rdtsc();
+
 			GlobalRunning = true;
 			while(GlobalRunning)
 			{
@@ -494,8 +505,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						int16 StickX = Pad->sThumbLX;
 						int16 StickY = Pad->sThumbLY;
 
-						XOffset += StickX >> 12;
-						YOffset += StickY >> 12;
+						XOffset += StickX / 4096;
+						YOffset += StickY / 4096;
+
+						SoundOutput.ToneHz = 512 + (int)(256.0f * ((real32)StickY / 30000.0f));
+						SoundOutput.WavePeriod = SoundOutput.SamplesPerSecond / SoundOutput.ToneHz;
 					}
 					else
 					{
@@ -539,8 +553,26 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 				win32_window_dimension Dimension = Win32GetWindowDimension(Window);
 				Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
-				++XOffset;
-				++YOffset;
+				//++XOffset; 
+				//++YOffset;
+
+				uint64 EndCycleCount = __rdtsc();
+
+				LARGE_INTEGER EndCounter;
+				QueryPerformanceCounter(&EndCounter);
+
+				uint64 CyclesElapsed = EndCycleCount - LastCycleCount;
+				int64 CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
+				real32 MSPerFrame = ((1000.0f * (real32)CounterElapsed) / (real32)PerfCountFrequency);
+				real32 FPS = (real32)PerfCountFrequency / (real32)CounterElapsed;
+				real32 MCPF = ((real32)CyclesElapsed / (1000.0f * 1000.0f));
+
+				char Buffer[256];
+				sprintf(Buffer, "%.02fms/f, %.02ff/s, %.02fmc/f\n", MSPerFrame, FPS, MCPF);
+				OutputDebugStringA(Buffer);
+
+				LastCounter = EndCounter;
+				LastCycleCount = EndCycleCount;
 			}
 			ReleaseDC(Window, DeviceContext);
 		}
