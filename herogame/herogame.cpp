@@ -39,12 +39,22 @@ internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int XOffset, in
 	}
 }
 
-void GameUpdateAndRender(game_input *Input, game_offscreen_buffer *Buffer, game_sound_output_buffer *SoundBuffer)
+void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_buffer *Buffer, game_sound_output_buffer *SoundBuffer)
 {
+	game_state *GameState = (game_state *)Memory->PermanentStorage;
+
+	if (!Memory->IsInitialized)
+	{
+		//NOTE: virtualalloc cleared to 0
+		GameState->ToneHZ = 256;
+		//GameState->GreenOffset = 0;
+		//GameState->BlueOffset = 0;
+		Memory->IsInitialized = true;
+	}
+
 	local_persist int BlueOffset = 0;
 	local_persist int GreenOffset = 0;
 	local_persist int ToneHZ = 256;
-
 	game_controller_input *Input0 = &Input->Controllers[0];
 	if (Input0->IsAnalog)
 	{
