@@ -26,7 +26,7 @@
     <ClInclude Include="herogame.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="defines.h">
+    <ClInclude Include="win32_herogame.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
