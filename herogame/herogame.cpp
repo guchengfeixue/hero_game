@@ -41,10 +41,19 @@ internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int XOffset, in
 
 void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_buffer *Buffer, game_sound_output_buffer *SoundBuffer)
 {
+	Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
+
 	game_state *GameState = (game_state *)Memory->PermanentStorage;
 
 	if (!Memory->IsInitialized)
 	{
+		char *Filename = __FILE__;
+		debug_read_file_result File = DEBUGPlatformReadEntireFile(Filename);
+		if (File.Contents)
+		{
+			DEBUGPlatformWriteEntireFile("test.out", File.ContentsSize, File.Contents);
+			DEBUGPlatformFreeFileMemory(File.Contents);
+		}
 		//NOTE: virtualalloc cleared to 0
 		GameState->ToneHZ = 256;
 		//GameState->GreenOffset = 0;
@@ -52,14 +61,11 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 		Memory->IsInitialized = true;
 	}
 
-	local_persist int BlueOffset = 0;
-	local_persist int GreenOffset = 0;
-	local_persist int ToneHZ = 256;
 	game_controller_input *Input0 = &Input->Controllers[0];
 	if (Input0->IsAnalog)
 	{
-		BlueOffset += (int)4.0f * (Input0->EndX);
-		ToneHZ = 256 + (int)(128.0f * (Input0->EndY));
+		GameState->BlueOffset += (int)4.0f * (Input0->EndX);
+		GameState->ToneHZ = 256 + (int)(128.0f * (Input0->EndY));
 	}
 	else
 	{
@@ -68,9 +74,9 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 
 	if (Input0->Down.EndedDown)
 	{
-		GreenOffset += 1;
+		GameState->GreenOffset += 1;
 	}
 
-	GameOutputSound(SoundBuffer, ToneHZ);
-	RenderWeirdGradient(Buffer, BlueOffset, GreenOffset);
+	GameOutputSound(SoundBuffer, GameState->ToneHZ);
+	RenderWeirdGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 }

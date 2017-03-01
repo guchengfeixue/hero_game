@@ -48,6 +48,24 @@ typedef double real64;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
+inline uint32 SafeTruncateUInt64(uint64 Value)
+{
+	Assert(Value <= 0xFFFFFFF);
+	uint32 Result = (uint32)Value;
+	return (Result);
+}
+
+#if HEROGAME_INTERNAL
+struct debug_read_file_result
+{
+	uint32 ContentsSize;
+	void *Contents;
+};
+internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename);
+internal void DEBUGPlatformFreeFileMemory(void *Memory);
+internal bool32 DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize, void *Memory);
+#endif
+
 struct game_offscreen_buffer
 {
 	void *Memory;
