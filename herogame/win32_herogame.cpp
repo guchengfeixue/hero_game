@@ -345,7 +345,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 		{
-			uint32 VKCode = Wparam;
+			uint32 VKCode = (uint32)Wparam;
 			bool WasDown = ((Lparam & (1 << 30)) != 0);
 			bool IsDown = ((Lparam & (1 << 31)) == 0);
 			if (WasDown != IsDown)
@@ -496,7 +496,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			uint64 TotalSize = GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
 
-			GameMemory.PermanentStorage = VirtualAlloc(BaseAddress, TotalSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			GameMemory.PermanentStorage = VirtualAlloc(BaseAddress, (size_t)TotalSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			GameMemory.TransientStorage = (uint8 *)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize;
 
 			if (Samples && GameMemory.PermanentStorage && GameMemory.TransientStorage)
@@ -522,7 +522,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						DispatchMessageA(&Message);
 					}
 
-					int MaxControllerCount = XUSER_MAX_COUNT;
+					DWORD MaxControllerCount = XUSER_MAX_COUNT;
 					if (MaxControllerCount > ArrayCount(NewInput->Controllers))
 					{
 						MaxControllerCount = ArrayCount(NewInput->Controllers);
@@ -540,10 +540,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							//NOTE: This controller is plugged in
 							XINPUT_GAMEPAD *Pad = &ControllerState.Gamepad;
 
-							bool Up = (bool)(Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP);
-							bool Down = (bool)(Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
-							bool Left = (bool)(Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
-							bool Right = (bool)(Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+							bool32 Up = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP);
+							bool32 Down = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
+							bool32 Left = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
+							bool32 Right = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
 
 							NewController->IsAnalog = true;
 							NewController->StartX = OldController->EndX;
@@ -588,14 +588,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							Win32ProcessXInputDigitalButton(
 								Pad->wButtons, &OldController->RightShoulder, XINPUT_GAMEPAD_RIGHT_SHOULDER, &NewController->RightShoulder);
 
-							bool Start = (bool)(Pad->wButtons & XINPUT_GAMEPAD_START);
-							bool Back = (bool)(Pad->wButtons & XINPUT_GAMEPAD_BACK);
-							bool LeftShoulder = (bool)(Pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
-							bool RightShoulder = (bool)(Pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
-							bool AButton = (bool)(Pad->wButtons & XINPUT_GAMEPAD_A);
-							bool BButton = (bool)(Pad->wButtons & XINPUT_GAMEPAD_B);
-							bool XButton = (bool)(Pad->wButtons & XINPUT_GAMEPAD_X);
-							bool YButton = (bool)(Pad->wButtons & XINPUT_GAMEPAD_Y);
+							bool32 Start = (Pad->wButtons & XINPUT_GAMEPAD_START);
+							bool32 Back = (Pad->wButtons & XINPUT_GAMEPAD_BACK);
+							bool32 LeftShoulder = (Pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
+							bool32 RightShoulder = (Pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
+							bool32 AButton = (Pad->wButtons & XINPUT_GAMEPAD_A);
+							bool32 BButton = (Pad->wButtons & XINPUT_GAMEPAD_B);
+							bool32 XButton = (Pad->wButtons & XINPUT_GAMEPAD_X);
+							bool32 YButton = (Pad->wButtons & XINPUT_GAMEPAD_Y);
 
 						}
 						else
