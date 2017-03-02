@@ -69,7 +69,6 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 	}
 	else
 	{
-
 	}
 
 	if (Input0->Down.EndedDown)
