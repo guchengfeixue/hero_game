@@ -635,7 +635,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				win32_debug_time_marker DebugTimeMarkers[GameUpdateHz / 2] = { 0 };
 
 				DWORD LastPlayCursor = 0;
+				DWORD LastWriteCursor = 0;
 				bool32 SoundIsValid = false;
+				DWORD AudioLatencyBytes = 0;
+				real32 AudioLatencySeconds = 0;
 
 				uint64 LastCycleCount = __rdtsc();
 
@@ -782,13 +785,21 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						DWORD PlayCursorT;
 						DWORD WriteCursorT;
 						GlobalSecondaryBuffer->GetCurrentPosition(&PlayCursorT, &WriteCursorT);
+
+						DWORD UnwrappedWriteCursor = WriteCursorT;
+						if (UnwrappedWriteCursor < PlayCursorT)
+						{
+							UnwrappedWriteCursor += SoundOutput.SecondaryBufferSize;
+						}
+						AudioLatencyBytes = UnwrappedWriteCursor - PlayCursorT;
+						AudioLatencySeconds = (((real32)AudioLatencyBytes / (real32)SoundOutput.BytesPerSample) / (real32)SoundOutput.SamplesPerSecond);
+
 						char TextBuffer[256];
 						_snprintf_s(TextBuffer, sizeof(TextBuffer),
-							"LPC:%u BTL:%u TC:%u BTW:%u - PC:%u WC:%u\n", 
-							LastPlayCursor, ByteToLock, TargetCursor, BytesToWrite, PlayCursorT, WriteCursorT);
+							"LPC:%u BTL:%u TC:%u BTW:%u - PC:%u WC:%u DELTA:%u (%fs)\n", 
+							LastPlayCursor, ByteToLock, TargetCursor, BytesToWrite, PlayCursorT, WriteCursorT, AudioLatencyBytes, AudioLatencySeconds);
 						OutputDebugStringA(TextBuffer);
 #endif
-
 						Win32FillSoundBuffer(&SoundOutput, ByteToLock, BytesToWrite, &SoundBuffer);
 					}
 
@@ -833,6 +844,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					DWORD WriteCursor;
 					if (GlobalSecondaryBuffer->GetCurrentPosition(&PlayCursor, &WriteCursor) == DS_OK)
 					{
+						LastWriteCursor = WriteCursor;
 						LastPlayCursor = PlayCursor;
 						if (!SoundIsValid)
 						{
@@ -847,8 +859,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 #if HEROGAME_INTERNAL
 					{
+						Assert(DebugTimeMarkerIndex < ArrayCount(DebugTimeMarkers));
 						win32_debug_time_marker *Marker = &DebugTimeMarkers[DebugTimeMarkerIndex++];
-						if (DebugTimeMarkerIndex > ArrayCount(DebugTimeMarkers))
+						if (DebugTimeMarkerIndex == ArrayCount(DebugTimeMarkers))
 						{
 							DebugTimeMarkerIndex = 0;
 						}
