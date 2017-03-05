@@ -35,6 +35,9 @@ typedef double real64;
 	1 - Slow code welcom.
 */
 
+#define HEROGAME_INTERNAL 1
+
+
 #if HEROGAME_SLOW
 #define Assert(Expression) if(!(Expression)) { *(int *)0 = 0;}
 #else
