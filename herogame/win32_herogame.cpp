@@ -545,7 +545,6 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 
 	int LineHeight = 64;
 
-
 	real32 C = (real32)(Backbuffer->Width - 2 * PadX) / (real32)SoundOutput->SecondaryBufferSize;
 	for (int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex)
 	{
@@ -557,10 +556,12 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 		Assert(ThisMarker->OutputLocation < SoundOutput->SecondaryBufferSize);
 		Assert(ThisMarker->FlipPlayCursor < SoundOutput->SecondaryBufferSize);
 		Assert(ThisMarker->FlipWriteCursor < SoundOutput->SecondaryBufferSize);
-
+		//Assert(ThisMarker->ExpectedFlipPlayCursor < SoundOutput->SecondaryBufferSize);
 
 		DWORD PlayColor = 0xFFFFFFFF;
 		DWORD WriteColor = 0xFFFF0000;
+		DWORD ExpectedFlipColor = 0xFFFFFF00;
+
 
 		int Top = PadY;
 		int Bottom = PadY + LineHeight;
@@ -571,6 +572,7 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 
 			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->OutputPlayCursor, PlayColor);
 			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->OutputWriteCursor, WriteColor);
+			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->ExpectedFlipPlayCursor, ExpectedFlipColor);
 
 			Top += LineHeight + PadY;
 			Bottom += LineHeight + PadY;
@@ -881,6 +883,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							Marker->OutputWriteCursor = WriteCursor;
 							Marker->OutputLocation = ByteToLock;
 							Marker->OutputByteCount = BytesToWrite;
+							Marker->ExpectedFlipPlayCursor = ExpectedFrameBoundryByte;
 
 							DWORD UnwrappedWriteCursor = WriteCursor;
 							if (UnwrappedWriteCursor < PlayCursor)
