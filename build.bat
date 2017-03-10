@@ -12,6 +12,7 @@ REM 32-bit build
 REM cl  %CommonCompilerFlag% ..\herogame\win32_herogame.cpp /link -subsystem:windows,5.1 %CommonLinkerFlags%
 
 REM 64-bit build
+cl %CommonCompilerFlags% ..\herogame\herogame.cpp /link /DLL
 cl %CommonCompilerFlags% ..\herogame\win32_herogame.cpp /link %CommonLinkerFlags%
 
 popd

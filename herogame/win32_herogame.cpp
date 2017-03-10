@@ -1,5 +1,4 @@
 #include "herogame.h"
-#include "herogame.cpp"
 
 #include <windows.h>
 #include <stdio.h>
@@ -47,7 +46,7 @@ global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
 #define DIRECT_SOUND_CREATE(name) HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(direct_sound_create);
 
-internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename)
+debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename)
 {
 	debug_read_file_result Result = {};
 
@@ -91,7 +90,7 @@ internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename)
 	return (Result);
 }
 
-internal void DEBUGPlatformFreeFileMemory(void *Memory)
+void DEBUGPlatformFreeFileMemory(void *Memory)
 {
 	if (Memory)
 	{
@@ -99,7 +98,7 @@ internal void DEBUGPlatformFreeFileMemory(void *Memory)
 	}
 }
 
-internal bool32 DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize, void *Memory)
+bool32 DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize, void *Memory)
 {
 	bool32 Result = false;
 	HANDLE FileHandle = CreateFileA(Filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);

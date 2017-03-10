@@ -1,6 +1,6 @@
 #include "herogame.h"
 
-internal void GameOutputSound(game_sound_output_buffer *SoundBuffer, int ToneHZ)
+void GameOutputSound(game_sound_output_buffer *SoundBuffer, int ToneHZ)
 {
 	local_persist real32 tSine;
 	int16 ToneVolume = 3000;
@@ -106,7 +106,7 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 	RenderWeirdGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 }
 
-internal void GameGetSoundSamples(game_memory *Memory, game_sound_output_buffer *SoundBuffer)
+void GameGetSoundSamples(game_memory *Memory, game_sound_output_buffer *SoundBuffer)
 {
 	game_state *GameState = (game_state *)Memory->PermanentStorage;
 	GameOutputSound(SoundBuffer, GameState->ToneHZ);
