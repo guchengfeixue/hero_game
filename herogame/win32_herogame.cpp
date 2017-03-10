@@ -561,7 +561,7 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 		DWORD PlayColor = 0xFFFFFFFF;
 		DWORD WriteColor = 0xFFFF0000;
 		DWORD ExpectedFlipColor = 0xFFFFFF00;
-
+		DWORD PlayWindowColor = 0xFFFF00FF;
 
 		int Top = PadY;
 		int Bottom = PadY + LineHeight;
@@ -570,9 +570,10 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 			Top += LineHeight + PadY;
 			Bottom += LineHeight + PadY;
 
+			int FirstTop = Top;
+
 			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->OutputPlayCursor, PlayColor);
 			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->OutputWriteCursor, WriteColor);
-			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->ExpectedFlipPlayCursor, ExpectedFlipColor);
 
 			Top += LineHeight + PadY;
 			Bottom += LineHeight + PadY;
@@ -582,6 +583,7 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 
 			Top += LineHeight + PadY;
 			Bottom += LineHeight + PadY;
+			Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, FirstTop, Bottom, ThisMarker->ExpectedFlipPlayCursor, ExpectedFlipColor);
 		}
 
 		Win32DrawSoundBufferMarker(Backbuffer, SoundOutput, C, PadX, Top, Bottom, ThisMarker->FlipPlayCursor, PlayColor);
@@ -687,14 +689,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				game_input *OldInput = &Input[1];
 
 				LARGE_INTEGER LastCounter = Win32GetWallClock();
+				LARGE_INTEGER FlipWallClock = Win32GetWallClock();
 
 				int DebugTimeMarkerIndex = 0;
 				win32_debug_time_marker DebugTimeMarkers[GameUpdateHz / 2] = { 0 };
 
-				DWORD LastWriteCursor = 0;
-				bool32 SoundIsValid = false;
 				DWORD AudioLatencyBytes = 0;
 				real32 AudioLatencySeconds = 0;
+				bool32 SoundIsValid = false;
 
 				uint64 LastCycleCount = __rdtsc();
 
@@ -809,6 +811,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						Buffer.Pitch = GlobalBackbuffer.Pitch;
 						GameUpdateAndRender(&GameMemory, NewInput, &Buffer);
 
+						LARGE_INTEGER AudioWallClock = Win32GetWallClock();
+						real32 FromBeginToAudioSeconds = Win32GetSecondsElapsed(FlipWallClock, AudioWallClock);
 
 						DWORD PlayCursor;
 						DWORD WriteCursor;
@@ -837,6 +841,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							}
 							DWORD ByteToLock = ((SoundOutput.RunningSampleIndex * SoundOutput.BytesPerSample) % SoundOutput.SecondaryBufferSize);
 							DWORD ExpectedSoundBytesPerFrame = (SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample) / GameUpdateHz;
+
+							real32 SecondsLeftUntilFlip = (TargetSecondsPerFrame - FromBeginToAudioSeconds);
+							DWORD ExpectedBytesUntilFlip = (DWORD)((SecondsLeftUntilFlip / TargetSecondsPerFrame) * (real32)ExpectedSoundBytesPerFrame);
+
 							DWORD ExpectedFrameBoundryByte = PlayCursor + ExpectedSoundBytesPerFrame;
 
 							DWORD SafeWriteCursor = WriteCursor;
@@ -941,6 +949,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							DebugTimeMarkerIndex - 1, &SoundOutput, TargetSecondsPerFrame);
 #endif
 						Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
+						
+						FlipWallClock = Win32GetWallClock();
 
 #if HEROGAME_INTERNAL
 						{

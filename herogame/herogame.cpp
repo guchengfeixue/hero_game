@@ -15,6 +15,10 @@ internal void GameOutputSound(game_sound_output_buffer *SoundBuffer, int ToneHZ)
 		*SampleOut++ = SampleValue;
 
 		tSine += 2.0f * Pi32 * 1.0f / (real32)WavePeriod;
+		if (tSine > 2.0f * Pi32)
+		{
+			tSine -= 2.0f * Pi32;
+		}
 	}
 }
 
@@ -56,7 +60,7 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 			DEBUGPlatformFreeFileMemory(File.Contents);
 		}
 		//NOTE: virtualalloc cleared to 0
-		GameState->ToneHZ = 256;
+		GameState->ToneHZ = 512;
 		//GameState->GreenOffset = 0;
 		//GameState->BlueOffset = 0;
 		Memory->IsInitialized = true;
@@ -68,7 +72,7 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 		if (Controller->IsAnalog)
 		{
 			GameState->BlueOffset += (int)(4.0f * Controller->StickAverageX);
-			GameState->ToneHZ = 256 + (int)(128.0f * Controller->StickAverageY);
+			GameState->ToneHZ = 512 + (int)(128.0f * Controller->StickAverageY);
 		}
 		else
 		{
