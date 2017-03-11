@@ -12,7 +12,8 @@ REM 32-bit build
 REM cl  %CommonCompilerFlag% ..\herogame\win32_herogame.cpp /link -subsystem:windows,5.1 %CommonLinkerFlags%
 
 REM 64-bit build
-cl %CommonCompilerFlags% ..\herogame\herogame.cpp  -Fmherogame.map /LD /link /DLL /EXPORT:GameGetSoundSamples /EXPORT:GameUpdateAndRender
+del *.pdb > NUL 2>NUL
+cl %CommonCompilerFlags% ..\herogame\herogame.cpp  -Fmherogame.map /LD /link -incremental:no -PDB:herogame_%date:~0,4%_%date:~5,2%_%date:~8,2%_%time:~0,2%_%time:~3,2%_%time:~6,2%.pdb -EXPORT:GameGetSoundSamples -EXPORT:GameUpdateAndRender
 cl %CommonCompilerFlags% ..\herogame\win32_herogame.cpp  -Fmwin32_herogame.map /link %CommonLinkerFlags%
 
 popd
