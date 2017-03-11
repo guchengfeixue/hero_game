@@ -1,28 +1,27 @@
 #include "herogame.h"
 
-void GameOutputSound(game_sound_output_buffer *SoundBuffer, int ToneHZ)
+void GameOutputSound(game_state *GameState, game_sound_output_buffer *SoundBuffer, int ToneHZ)
 {
-	local_persist real32 tSine;
 	int16 ToneVolume = 3000;
 	int WavePeriod = SoundBuffer->SamplesPerSecond / ToneHZ;
 	
 	int16 *SampleOut = SoundBuffer->Samples;
 	for (int SampleIndex = 0; SampleIndex < SoundBuffer->SampleCount; ++SampleIndex)
 	{
-		real32 SineValue = sinf(tSine);
+		real32 SineValue = sinf(GameState->tSine);
 		int16 SampleValue = (int16)(SineValue * ToneVolume);
 		*SampleOut++ = SampleValue;
 		*SampleOut++ = SampleValue;
 
-		tSine += 2.0f * Pi32 * 1.0f / (real32)WavePeriod;
-		if (tSine > 2.0f * Pi32)
+		GameState->tSine += 2.0f * Pi32 * 1.0f / (real32)WavePeriod;
+		if (GameState->tSine > 2.0f * Pi32)
 		{
-			tSine -= 2.0f * Pi32;
+			GameState->tSine -= 2.0f * Pi32;
 		}
 	}
 }
 
-internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int XOffset, int YOffset)
+internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int BlueOffset, int GreenOffset)
 {
 	uint8 *Row = (uint8 *)Buffer->Memory;
 	for (int Y = 0; Y < Buffer->Height; ++Y)
@@ -30,8 +29,8 @@ internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int XOffset, in
 		uint32 *Pixel = (uint32 *)Row;
 		for (int X = 0; X < Buffer->Width; ++X)
 		{
-			uint8 Blue = (uint8)(X + XOffset);
-			uint8 Green = (uint8)(Y + YOffset);
+			uint8 Blue = (uint8)(X + BlueOffset);
+			uint8 Green = (uint8)(Y + GreenOffset);
 			/*
 			Memory:		BB GG RR xx
 			Register:	xx RR GG BB
@@ -43,7 +42,7 @@ internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int XOffset, in
 	}
 }
 
-void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_buffer *Buffer)
+extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)))
 	Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
@@ -53,14 +52,15 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 	if (!Memory->IsInitialized)
 	{
 		char *Filename = __FILE__;
-		debug_read_file_result File = DEBUGPlatformReadEntireFile(Filename);
+		debug_read_file_result File = Memory->DEBUGPlatformReadEntireFile(Filename);
 		if (File.Contents)
 		{
-			DEBUGPlatformWriteEntireFile("test.out", File.ContentsSize, File.Contents);
-			DEBUGPlatformFreeFileMemory(File.Contents);
+			Memory->DEBUGPlatformWriteEntireFile("test.out", File.ContentsSize, File.Contents);
+			Memory->DEBUGPlatformFreeFileMemory(File.Contents);
 		}
 		//NOTE: virtualalloc cleared to 0
 		GameState->ToneHZ = 512;
+		GameState->tSine = 0.0f;
 		//GameState->GreenOffset = 0;
 		//GameState->BlueOffset = 0;
 		Memory->IsInitialized = true;
@@ -106,8 +106,16 @@ void GameUpdateAndRender(game_memory *Memory, game_input *Input, game_offscreen_
 	RenderWeirdGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 }
 
-void GameGetSoundSamples(game_memory *Memory, game_sound_output_buffer *SoundBuffer)
+extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)
 {
 	game_state *GameState = (game_state *)Memory->PermanentStorage;
-	GameOutputSound(SoundBuffer, GameState->ToneHZ);
+	GameOutputSound(GameState, SoundBuffer, GameState->ToneHZ);
 }
+
+#if HEROGAME_WIN32
+#include "windows.h"
+BOOL WINAPI DllMain(_In_ HINSTANCE hinstDLL, _In_ DWORD fdwReason, _In_ LPVOID lpvReserved)
+{
+	return (TRUE);
+}
+#endif
