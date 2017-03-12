@@ -145,11 +145,10 @@ inline FILETIME Win32GetLastWriteTime(char *Filename)
 	return (LastWriteTime);
 }
 
-internal win32_game_code Win32LoadGameCode(char *SourceDLLName)
+internal win32_game_code Win32LoadGameCode(char *SourceDLLName, char *TempDLLName)
 {
 	win32_game_code Result = {};
 
-	char *TempDLLName = "handmade_temp.dll";
 	Result.DLLLastWriteTime = Win32GetLastWriteTime(SourceDLLName);
 
 	CopyFile(SourceDLLName, TempDLLName, FALSE);
@@ -307,7 +306,7 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, i
 	Buffer->Info.bmiHeader.biCompression = BI_RGB;
 
 	int BitmapMemorySize = (Buffer->Width * Buffer->Height) * BytesPerPixel;
-	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 	Buffer->Pitch = Width * BytesPerPixel;
 }
 
@@ -379,52 +378,52 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 
 	switch (uMsg)
 	{
-	case WM_CLOSE:
-	{
-		GlobalRunning = false;
-		OutputDebugStringA("WM_QUIT\n");
-	}break;
+		case WM_CLOSE:
+		{
+			GlobalRunning = false;
+			OutputDebugStringA("WM_QUIT\n");
+		}break;
 
-	//case WM_SIZE:
-	//{
-	//	//win32_window_dimension Dimension = Win32GetWindowDimension(hwnd);
-	//	//Win32ResizeDIBSection(&GlobalBackbuffer, Dimension.Width, Dimension.Height);
-	//	OutputDebugStringA("WM_SIZE\n");
+		//case WM_SIZE:
+		//{
+		//	//win32_window_dimension Dimension = Win32GetWindowDimension(hwnd);
+		//	//Win32ResizeDIBSection(&GlobalBackbuffer, Dimension.Width, Dimension.Height);
+		//	OutputDebugStringA("WM_SIZE\n");
 
-	//}break;
+		//}break;
 
-	case WM_ACTIVATEAPP:
-	{
-	}break;
+		case WM_ACTIVATEAPP:
+		{
+		}break;
 
-	case WM_DESTROY:
-	{
-		GlobalRunning = false;
-		OutputDebugStringA("WM_DESTROY\n");
-	}break;
+		case WM_DESTROY:
+		{
+			GlobalRunning = false;
+			OutputDebugStringA("WM_DESTROY\n");
+		}break;
 
-	case WM_SYSKEYDOWN:
-	case WM_SYSKEYUP:
-	case WM_KEYDOWN:
-	case WM_KEYUP:
-	{
-		Assert(!"Keyboard input came in through");
-	}break;
-	case WM_PAINT:
-	{
-		//OutputDebugStringA("WM_PAINT\n");
-		PAINTSTRUCT Paint;
-		HDC DeviceContext = BeginPaint(hwnd, &Paint);
-		win32_window_dimension Dimension = Win32GetWindowDimension(hwnd);
-		//Win32ResizeDIBSection(&GlobalBackbuffer, Dimension.Width, Dimension.Height);
-		Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
-		EndPaint(hwnd, &Paint);
-	}break;
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		{
+			Assert(!"Keyboard input came in through");
+		}break;
+		case WM_PAINT:
+		{
+			//OutputDebugStringA("WM_PAINT\n");
+			PAINTSTRUCT Paint;
+			HDC DeviceContext = BeginPaint(hwnd, &Paint);
+			win32_window_dimension Dimension = Win32GetWindowDimension(hwnd);
+			//Win32ResizeDIBSection(&GlobalBackbuffer, Dimension.Width, Dimension.Height);
+			Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
+			EndPaint(hwnd, &Paint);
+		}break;
 
-	default:
-	{
-		Result = DefWindowProc(hwnd, uMsg, Wparam, Lparam);
-	}break;
+		default:
+		{
+			Result = DefWindowProc(hwnd, uMsg, Wparam, Lparam);
+		}break;
 	}
 	return (Result);
 }
@@ -465,88 +464,88 @@ internal void Win32ProcessPendingMessages(game_controller_input *KeyboardControl
 	{
 		switch (Message.message)
 		{
-		case WM_QUIT:
-		{
-			GlobalRunning = false;
-		}break;
-		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP:
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-		{
-			uint32 VKCode = (uint32)Message.wParam;
-			bool32 WasDown = ((Message.lParam & (1 << 30)) != 0);
-			bool32 IsDown = ((Message.lParam & (1 << 31)) == 0);
-			if (WasDown != IsDown)
+			case WM_QUIT:
 			{
-				if (VKCode == 'W')
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->MoveUp, IsDown);
-				}
-				else if (VKCode == 'A')
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->MoveLeft, IsDown);
-				}
-				else if (VKCode == 'S')
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->MoveDown, IsDown);
-				}
-				else if (VKCode == 'D')
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->MoveRight, IsDown);
-				}
-				else if (VKCode == 'Q')
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->LeftShoulder, IsDown);
-				}
-				else if (VKCode == 'E')
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->RightShoulder, IsDown);
-				}
-				else if (VKCode == VK_UP)
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->ActionUp, IsDown);
-				}
-				else if (VKCode == VK_LEFT)
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->ActionLeft, IsDown);
-				}
-				else if (VKCode == VK_DOWN)
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->ActionDown, IsDown);
-				}
-				else if (VKCode == VK_RIGHT)
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->ActionRight, IsDown);
-				}
-				else if (VKCode == VK_ESCAPE)
-				{
-					GlobalRunning = false;
-					Win32ProcessKeyBoardMessage(&KeyboardController->Start, IsDown);
-				}
-				else if (VKCode == VK_SPACE)
-				{
-					Win32ProcessKeyBoardMessage(&KeyboardController->Back, IsDown);
-				}
-#if HEROGAME_INTERNAL
-				else if (VKCode == 'P')
-				{
-					if (IsDown)
-					{
-						GlobalPause = !GlobalPause;
-					}
-				}
-#endif
-			}
-			bool32 AltKeyWasDown = (Message.lParam & (1 << 29));
-			if ((VKCode == VK_F4) && AltKeyWasDown)
 				GlobalRunning = false;
-		}break;
-		default:
-		{
-			TranslateMessage(&Message);
-			DispatchMessageA(&Message);
-		}
+			}break;
+			case WM_SYSKEYDOWN:
+			case WM_SYSKEYUP:
+			case WM_KEYDOWN:
+			case WM_KEYUP:
+			{
+				uint32 VKCode = (uint32)Message.wParam;
+				bool32 WasDown = ((Message.lParam & (1 << 30)) != 0);
+				bool32 IsDown = ((Message.lParam & (1 << 31)) == 0);
+				if (WasDown != IsDown)
+				{
+					if (VKCode == 'W')
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->MoveUp, IsDown);
+					}
+					else if (VKCode == 'A')
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->MoveLeft, IsDown);
+					}
+					else if (VKCode == 'S')
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->MoveDown, IsDown);
+					}
+					else if (VKCode == 'D')
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->MoveRight, IsDown);
+					}
+					else if (VKCode == 'Q')
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->LeftShoulder, IsDown);
+					}
+					else if (VKCode == 'E')
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->RightShoulder, IsDown);
+					}
+					else if (VKCode == VK_UP)
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->ActionUp, IsDown);
+					}
+					else if (VKCode == VK_LEFT)
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->ActionLeft, IsDown);
+					}													
+					else if (VKCode == VK_DOWN)							
+					{													 
+						Win32ProcessKeyBoardMessage(&KeyboardController->ActionDown, IsDown);
+					}													 
+					else if (VKCode == VK_RIGHT)						 
+					{													 
+						Win32ProcessKeyBoardMessage(&KeyboardController->ActionRight, IsDown);
+					}
+					else if (VKCode == VK_ESCAPE)
+					{
+						GlobalRunning = false;
+						Win32ProcessKeyBoardMessage(&KeyboardController->Start, IsDown);
+					}
+					else if (VKCode == VK_SPACE)
+					{
+						Win32ProcessKeyBoardMessage(&KeyboardController->Back, IsDown);
+					}
+#if HEROGAME_INTERNAL
+					else if (VKCode == 'P')
+					{
+						if (IsDown)
+						{
+							GlobalPause = !GlobalPause;
+						}
+					}
+#endif
+				}
+				bool32 AltKeyWasDown = (Message.lParam & (1 << 29));
+				if ((VKCode == VK_F4) && AltKeyWasDown)
+					GlobalRunning = false;
+			}break;
+			default:
+			{
+				TranslateMessage(&Message);
+				DispatchMessageA(&Message);
+			}
 		}
 	}
 }
@@ -651,25 +650,61 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *Backbuffer, int Mark
 	}
 }
 
+internal void CatStrings(size_t SourceACount, char *SourceA, size_t SourceBCount, char *SourceB, size_t DestCount, char *Dest)
+{
+	for (int Index = 0; Index < SourceACount; ++Index)
+	{
+		*Dest++ = *SourceA++;
+	}
+	for (int Index = 0; Index < SourceBCount; ++Index)
+	{
+		*Dest++ = *SourceB++;
+	}
+	*Dest++ = 0;
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int)
 {
+	char EXEFileName[MAX_PATH];
+	DWORD SizeOfFilename = GetModuleFileNameA(0, EXEFileName, sizeof(EXEFileName));
+	char *OnePastLastSlash = EXEFileName;
+	for (char *Scan = EXEFileName; *Scan; ++Scan)
+	{
+		if (*Scan == '\\')
+		{
+			OnePastLastSlash = Scan + 1;
+		}
+	}
+
+	char SourceGameCodeDLLFilename[] = "herogame.dll";
+	char SourceGameCodeDLLFullPath[MAX_PATH];
+	CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
+		sizeof(SourceGameCodeDLLFilename)-1, SourceGameCodeDLLFilename,			//NOTE: ×Ö·û´®Ä©Î²µÄ'\0'
+		sizeof(SourceGameCodeDLLFullPath), SourceGameCodeDLLFullPath);
+
+	char TempGameCodeDLLFilename[] = "herogame_temp.dll";
+	char TempGameCodeDLLFullPath[MAX_PATH];
+	CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
+		sizeof(TempGameCodeDLLFilename)-1, TempGameCodeDLLFilename,
+		sizeof(TempGameCodeDLLFullPath), TempGameCodeDLLFullPath);
+
 	LARGE_INTEGER PerfCountFrequencyResult;
 	QueryPerformanceFrequency(&PerfCountFrequencyResult);
 	GlobalPerfCountFrequency = PerfCountFrequencyResult.QuadPart;
 
 	UINT DesiredSchedulerMS = 1;
 	bool32 SleepIsGrannular = (timeBeginPeriod(DesiredSchedulerMS) == TIMERR_NOERROR);
-
+	
 	Win32LoadXInput();
 
 	WNDCLASS WindowClass = {};
 	Win32ResizeDIBSection(&GlobalBackbuffer, 1280, 720);
 
-	WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	WindowClass.lpfnWndProc = Win32MainWindowCallback;
-	WindowClass.hInstance = hInstance;
+	WindowClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	WindowClass.lpfnWndProc		= Win32MainWindowCallback;
+	WindowClass.hInstance		= hInstance;
 	//WindowClass.hInstance		= GetModuleHandle(0);
-	WindowClass.lpszClassName = "HeroGameWindowClass";
+	WindowClass.lpszClassName	= "HeroGameWindowClass";
 
 #define MonitorRefeshHz 60
 #define GameUpdateHz (MonitorRefeshHz / 2)
@@ -762,18 +797,18 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				real32 AudioLatencySeconds = 0;
 				bool32 SoundIsValid = false;
 
-				char *SourceDLLName = "handmade.dll";
-				win32_game_code Game = Win32LoadGameCode(SourceDLLName);
+				win32_game_code Game = Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 				uint32 LoadCounter = 0;
 
 				uint64 LastCycleCount = __rdtsc();
 
 				while (GlobalRunning)
 				{
-					if (LoadCounter++ > 120)
+					FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
+					if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) !=0 )
 					{
 						Win32UnloadGameCode(&Game);
-						Game = Win32LoadGameCode(SourceDLLName);
+						Game = Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 						LoadCounter = 0;
 					}
 
@@ -792,7 +827,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					{
 
 						DWORD MaxControllerCount = XUSER_MAX_COUNT;
-						if (MaxControllerCount >(ArrayCount(NewInput->Controllers) - 1))
+						if (MaxControllerCount > (ArrayCount(NewInput->Controllers) - 1))
 						{
 							MaxControllerCount = (ArrayCount(NewInput->Controllers) - 1);
 						}
@@ -1024,7 +1059,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							DebugTimeMarkerIndex - 1, &SoundOutput, TargetSecondsPerFrame);
 #endif
 						Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
-
+						
 						FlipWallClock = Win32GetWallClock();
 
 #if HEROGAME_INTERNAL
