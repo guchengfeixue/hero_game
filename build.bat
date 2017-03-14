@@ -16,6 +16,7 @@ del *.pdb > NUL 2>NUL
 
 set hr=%time:~0,2%
 set hr=%hr: =0%
+REM Lletter replace, space relaced by 0 
 cl %CommonCompilerFlags% ..\herogame\herogame.cpp  -Fmherogame.map /LD /link -incremental:no -PDB:herogame_%date:~0,4%_%date:~5,2%_%date:~8,2%_%hr%_%time:~3,2%_%time:~6,2%.pdb -EXPORT:GameGetSoundSamples -EXPORT:GameUpdateAndRender
 cl %CommonCompilerFlags% ..\herogame\win32_herogame.cpp  -Fmwin32_herogame.map /link %CommonLinkerFlags%
 
