@@ -362,7 +362,7 @@ internal void Win32FillSoundBuffer(
 	}
 }
 
-LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LPARAM Lparam)
+LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT uMsg, WPARAM WParam, LPARAM LParam)
 {
 	LRESULT Result = 0;
 
@@ -384,6 +384,14 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 
 		case WM_ACTIVATEAPP:
 		{
+			if (WParam == TRUE)
+			{
+				SetLayeredWindowAttributes(Window, RGB(0, 0, 0), 255, LWA_ALPHA);
+			}
+			else
+			{
+				SetLayeredWindowAttributes(Window, RGB(0, 0, 0), 64, LWA_ALPHA);
+			}
 		}break;
 
 		case WM_DESTROY:
@@ -403,16 +411,16 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND hwnd, UINT uMsg, WPARAM Wparam, LP
 		{
 			//OutputDebugStringA("WM_PAINT\n");
 			PAINTSTRUCT Paint;
-			HDC DeviceContext = BeginPaint(hwnd, &Paint);
-			win32_window_dimension Dimension = Win32GetWindowDimension(hwnd);
+			HDC DeviceContext = BeginPaint(Window, &Paint);
+			win32_window_dimension Dimension = Win32GetWindowDimension(Window);
 			//Win32ResizeDIBSection(&GlobalBackbuffer, Dimension.Width, Dimension.Height);
 			Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
-			EndPaint(hwnd, &Paint);
+			EndPaint(Window, &Paint);
 		}break;
 
 		default:
 		{
-			Result = DefWindowProc(hwnd, uMsg, Wparam, Lparam);
+			Result = DefWindowProc(Window, uMsg, WParam, LParam);
 		}break;
 	}
 	return (Result);
@@ -765,7 +773,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	WNDCLASS WindowClass = {};
 	Win32ResizeDIBSection(&GlobalBackbuffer, 1280, 720);
 
-	WindowClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	WindowClass.style			= CS_HREDRAW | CS_VREDRAW;
 	WindowClass.lpfnWndProc		= Win32MainWindowCallback;
 	WindowClass.hInstance		= hInstance;
 	//WindowClass.hInstance		= GetModuleHandle(0);
@@ -778,7 +786,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	if (RegisterClassA(&WindowClass))
 	{
 		HWND Window = CreateWindowExA(
-			0,
+			WS_EX_TOPMOST | WS_EX_LAYERED,
 			WindowClass.lpszClassName,
 			"Hero Game",
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -793,9 +801,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 		if (Window)
 		{
+			SetLayeredWindowAttributes(Window, RGB(0, 0, 0), 128, LWA_ALPHA);
 			//NOTE: 使用了CS_OWNER标志后，保持一个device context 并一直使用，不与其他共享
-			HDC DeviceContext = GetDC(Window);
-
 			win32_sound_output SoundOutput = {};
 
 			//NOTE: Sound test
@@ -1136,7 +1143,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						Win32DebugSyncDisplay(&GlobalBackbuffer, ArrayCount(DebugTimeMarkers), DebugTimeMarkers,
 							DebugTimeMarkerIndex - 1, &SoundOutput, TargetSecondsPerFrame);
 #endif
+						HDC DeviceContext = GetDC(Window);
 						Win32DisplayBufferInWindow(&GlobalBackbuffer, DeviceContext, Dimension.Width, Dimension.Height);
+						ReleaseDC(Window, DeviceContext);
 						
 						FlipWallClock = Win32GetWallClock();
 
@@ -1177,7 +1186,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 					}
 				}
-				//ReleaseDC(Window, DeviceContext);
 			}
 			else
 			{
