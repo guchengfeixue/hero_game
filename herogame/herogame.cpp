@@ -145,6 +145,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	}
 	RenderWeirdGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 	RenderPlayer(Buffer, GameState->PlayerX, GameState->PlayerY);
+	RenderPlayer(Buffer, Input->MouseX, Input->MouseY);
 
 	for (int ButtonIndex = 0; ButtonIndex < ArrayCount(Input->MouseButtons); ++ButtonIndex)
 	{
