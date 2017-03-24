@@ -49,6 +49,15 @@ struct win32_game_code
 };
 
 #define WIN32_STATE_FILE_NAME_COUNT MAX_PATH
+
+struct win32_replay_buffer
+{
+	HANDLE FileHandle;
+	HANDLE MemoryMap;
+	char FileName[WIN32_STATE_FILE_NAME_COUNT];
+	void *MemoryBlock;
+};
+
 struct win32_state
 {
 	uint64 TotalSize;
@@ -59,6 +68,8 @@ struct win32_state
 
 	HANDLE PlayBackHandle;
 	int InputPlayingIndex;
+
+	win32_replay_buffer ReplayBuffers[4];
 
 	char EXEFileName[MAX_PATH];
 	char *OnePastLastEXEFileNameSlash;
