@@ -343,9 +343,17 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, i
 
 internal void Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer, HDC DeviceContext, int WindowWidth, int WindowHeight)
 {
+	int OffsetX = 10;
+	int OffsetY = 10;
+
+	PatBlt(DeviceContext, 0, 0, WindowWidth, OffsetY, BLACKNESS);
+	PatBlt(DeviceContext, 0, OffsetY + Buffer->Height, WindowWidth, WindowHeight, BLACKNESS);
+	PatBlt(DeviceContext, 0, 0, OffsetX, WindowHeight, BLACKNESS);
+	PatBlt(DeviceContext, OffsetX + Buffer->Width, 0, WindowWidth, WindowHeight, BLACKNESS);
+
 	StretchDIBits(
 		DeviceContext,
-		0, 0, Buffer->Width, Buffer->Height,
+		OffsetX, OffsetY, Buffer->Width, Buffer->Height,
 		0, 0, Buffer->Width, Buffer->Height,
 		Buffer->Memory, &Buffer->Info, DIB_RGB_COLORS, SRCCOPY);
 }
@@ -1269,10 +1277,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						NewInput = OldInput;
 						OldInput = Temp;
 
+#if 1
 						uint64 EndCycleCount = __rdtsc();
 						uint64 CyclesElapsed = EndCycleCount - LastCycleCount;
 						LastCycleCount = EndCycleCount;
-#if 0
 
 						real64 FPS = 0.0f;
 						real64 MCPF = ((real64)CyclesElapsed / (1000.0f * 1000.0f));
