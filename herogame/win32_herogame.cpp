@@ -938,7 +938,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				game_input Input[2] = {};
 				game_input *NewInput = &Input[0];
 				game_input *OldInput = &Input[1];
-				NewInput->SecondsToAdvanceOverUpdate = TargetSecondsPerFrame;
 
 				LARGE_INTEGER LastCounter = Win32GetWallClock();
 				LARGE_INTEGER FlipWallClock = Win32GetWallClock();
@@ -957,6 +956,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 				while (GlobalRunning)
 				{
+					NewInput->dtForFrame = TargetSecondsPerFrame;
 					FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
 					if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) !=0 )
 					{
@@ -1272,6 +1272,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						uint64 EndCycleCount = __rdtsc();
 						uint64 CyclesElapsed = EndCycleCount - LastCycleCount;
 						LastCycleCount = EndCycleCount;
+#if 0
 
 						real64 FPS = 0.0f;
 						real64 MCPF = ((real64)CyclesElapsed / (1000.0f * 1000.0f));
@@ -1279,6 +1280,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						char FPSBuffer[256];
 						_snprintf_s(FPSBuffer, sizeof(FPSBuffer), "%.02fms/f, %.02ff/s, %.02fmc/f\n", MSPerFrame, FPS, MCPF);
 						OutputDebugStringA(FPSBuffer);
+#endif
 
 #if HEROGAME_INTERNAL
 						++DebugTimeMarkerIndex;
