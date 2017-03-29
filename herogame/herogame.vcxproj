@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="herogame.h" />
+    <ClInclude Include="herogame_intrinsics.h" />
     <ClInclude Include="herogame_platform.h" />
     <ClInclude Include="win32_herogame.h" />
   </ItemGroup>

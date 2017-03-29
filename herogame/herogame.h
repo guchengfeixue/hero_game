@@ -46,14 +46,14 @@ inline game_controller_input *GetController(game_input *Input, unsigned int Cont
 
 struct canonical_position
 {
-	int32 TileMapX;
-	int32 TileMapY;
+	int32 TileMapX;		 // world中某一个tilemap的位置x
+	int32 TileMapY;		 // world中某一个tilemap的位置y
 
-	int32 TileX;
-	int32 TileY;
+	int32 TileX;		// TileMap中某一个格子的位置x
+	int32 TileY;		// TileMap中某一个格子的位置y 
 
-	real32 X;
-	real32 Y;
+	real32 TileRelX;			// tilemap中相对于格子内的位置x
+	real32 TileRelY;			// tilemap中相对于格子内的位置y
 };
 
 struct raw_position
@@ -72,13 +72,14 @@ struct tile_map
 
 struct world
 {
+	real32 TilesSideInMeters;
+	int32 TileSideInPixels;
+
 	int32 CountX;
 	int32 CountY;
 
 	real32 UpperLeftX;
 	real32 UpperLeftY;
-	real32 TileWidth;
-	real32 TileHeight;
 
 	int32 TileMapCountX;
 	int32 TileMapCountY;

@@ -32,5 +32,8 @@
     <ClInclude Include="herogame_platform.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="herogame_intrinsics.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
