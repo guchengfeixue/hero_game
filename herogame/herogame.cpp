@@ -114,15 +114,15 @@ inline void RecanonicalizeCoord(world *World, int32 TileCount, int *TileMap, int
 	}
 }
 
-inline canonical_position RecanonicalizePosition(world *World, canonical_position Pos)
+inline world_position RecanonicalizePosition(world *World, world_position Pos)
 {
-	canonical_position Result = Pos;
+	world_position Result = Pos;
 	RecanonicalizeCoord(World, World->CountX, &Result.TileMapX, &Result.TileX, &Result.TileRelX);
 	RecanonicalizeCoord(World, World->CountY, &Result.TileMapY, &Result.TileY, &Result.TileRelY);
 	return (Result);
 }
 
-internal bool32 IsWorldPointEmpty(world *World, canonical_position CanPos)
+internal bool32 IsWorldPointEmpty(world *World, world_position CanPos)
 {
 	bool32 Empty = false;
 	tile_map *TileMap = GetTileMap(World, CanPos.TileMapX, CanPos.TileMapY);
@@ -262,16 +262,16 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			dPlayerX *= 2.0f;
 			dPlayerY *= 2.0f;
 
-			canonical_position NewPlayerP = GameState->PlayerP;
+			world_position NewPlayerP = GameState->PlayerP;
 			NewPlayerP.TileRelX += Input->dtForFrame * dPlayerX;
 			NewPlayerP.TileRelY += Input->dtForFrame * dPlayerY;
 			NewPlayerP = RecanonicalizePosition(&World, NewPlayerP);
 
-			canonical_position PlayerLeft = NewPlayerP;
+			world_position PlayerLeft = NewPlayerP;
 			PlayerLeft.TileRelX -= 0.5f * PlayerWidth;
 			PlayerLeft = RecanonicalizePosition(&World, PlayerLeft);
 
-			canonical_position PlayerRight = NewPlayerP;
+			world_position PlayerRight = NewPlayerP;
 			PlayerRight.TileRelX += 0.5f * PlayerWidth;
 			PlayerRight = RecanonicalizePosition(&World, PlayerRight);
 

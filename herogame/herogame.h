@@ -44,7 +44,7 @@ inline game_controller_input *GetController(game_input *Input, unsigned int Cont
 	return (Result);
 }
 
-struct canonical_position
+struct world_position
 {
 	int32 TileMapX;		 // world中某一个tilemap的位置x
 	int32 TileMapY;		 // world中某一个tilemap的位置y
@@ -80,7 +80,7 @@ struct world
 
 struct game_state
 {
-	canonical_position PlayerP;
+	world_position PlayerP;
 };
 
 #define HEROGAME_H
