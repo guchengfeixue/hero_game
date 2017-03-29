@@ -56,15 +56,6 @@ struct canonical_position
 	real32 TileRelY;			// tilemap中相对于格子内的位置y
 };
 
-struct raw_position
-{
-	int32 TileMapX;
-	int32 TileMapY;
-
-	real32 X;
-	real32 Y;
-};
-
 struct tile_map
 {
 	uint32 *Tiles;
@@ -74,6 +65,7 @@ struct world
 {
 	real32 TilesSideInMeters;
 	int32 TileSideInPixels;
+	real32 MetersToPixels;
 
 	int32 CountX;
 	int32 CountY;
@@ -88,11 +80,7 @@ struct world
 
 struct game_state
 {
-	int32 PlayerTileMapX;
-	int32 PlayerTileMapY;
-
-	real32 PlayerX;
-	real32 PlayerY;
+	canonical_position PlayerP;
 };
 
 #define HEROGAME_H
