@@ -70,8 +70,8 @@ struct world
 	int32 CountX;
 	int32 CountY;
 
-	real32 UpperLeftX;
-	real32 UpperLeftY;
+	real32 LowerLeftX;
+	real32 LowerLeftY;
 
 	int32 TileMapCountX;
 	int32 TileMapCountY;
