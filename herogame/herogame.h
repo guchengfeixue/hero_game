@@ -44,38 +44,43 @@ inline game_controller_input *GetController(game_input *Input, unsigned int Cont
 	return (Result);
 }
 
+struct tile_chunk_position 
+{
+	uint32 TileChunkX;
+	uint32 TileChunkY;
+
+	uint32 RelTileX;
+	uint32 RelTileY;
+};
+
 struct world_position
 {
-	int32 TileMapX;		 // world中某一个tilemap的位置x
-	int32 TileMapY;		 // world中某一个tilemap的位置y
-
-	int32 TileX;		// TileMap中某一个格子的位置x
-	int32 TileY;		// TileMap中某一个格子的位置y 
+	uint32 AbsTileX;
+	uint32 AbsTileY;
 
 	real32 TileRelX;			// tilemap中相对于格子内的位置x
 	real32 TileRelY;			// tilemap中相对于格子内的位置y
 };
 
-struct tile_map
+struct tile_chunk
 {
 	uint32 *Tiles;
 };
 
 struct world
 {
+	uint32 ChunkShift;
+	uint32 ChunkMask;
+	uint32 ChunkDim;
+
 	real32 TilesSideInMeters;
 	int32 TileSideInPixels;
 	real32 MetersToPixels;
 
-	int32 CountX;
-	int32 CountY;
+	int32 TileChunkCountX;
+	int32 TileChunkCountY;
 
-	real32 LowerLeftX;
-	real32 LowerLeftY;
-
-	int32 TileMapCountX;
-	int32 TileMapCountY;
-	tile_map *TileMaps;
+	tile_chunk *TileChunks;
 };
 
 struct game_state
