@@ -44,48 +44,17 @@ inline game_controller_input *GetController(game_input *Input, unsigned int Cont
 	return (Result);
 }
 
-struct tile_chunk_position 
-{
-	uint32 TileChunkX;
-	uint32 TileChunkY;
-
-	uint32 RelTileX;
-	uint32 RelTileY;
-};
-
-struct world_position
-{
-	uint32 AbsTileX;
-	uint32 AbsTileY;
-
-	real32 TileRelX;			// tilemap中相对于格子内的位置x
-	real32 TileRelY;			// tilemap中相对于格子内的位置y
-};
-
-struct tile_chunk
-{
-	uint32 *Tiles;
-};
+#include "herogame_intrinsics.h"
+#include "herogame_tile.h"
 
 struct world
 {
-	uint32 ChunkShift;
-	uint32 ChunkMask;
-	uint32 ChunkDim;
-
-	real32 TilesSideInMeters;
-	int32 TileSideInPixels;
-	real32 MetersToPixels;
-
-	int32 TileChunkCountX;
-	int32 TileChunkCountY;
-
-	tile_chunk *TileChunks;
+	tile_map *TileMap;
 };
 
 struct game_state
 {
-	world_position PlayerP;
+	tile_map_position PlayerP;
 };
 
 #define HEROGAME_H

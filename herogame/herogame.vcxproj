@@ -81,12 +81,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="herogame.cpp" />
+    <ClCompile Include="herogame_tile.cpp" />
     <ClCompile Include="win32_herogame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="herogame.h" />
     <ClInclude Include="herogame_intrinsics.h" />
     <ClInclude Include="herogame_platform.h" />
+    <ClInclude Include="herogame_tile.h" />
     <ClInclude Include="win32_herogame.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

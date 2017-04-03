@@ -21,6 +21,9 @@
     <ClCompile Include="herogame.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="herogame_tile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="herogame.h">
@@ -33,6 +36,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="herogame_intrinsics.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="herogame_tile.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
