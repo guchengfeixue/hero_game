@@ -106,9 +106,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		TileMap->ChunkShift = 8;
 		TileMap->ChunkMask = (1 << TileMap->ChunkShift) - 1;
-		TileMap->ChunkDim = 256;
-		TileMap->TileChunkCountX = 4;
-		TileMap->TileChunkCountY = 4;
+		TileMap->ChunkDim = (1 << TileMap->ChunkShift);
+
+		TileMap->TileChunkCountX = 8;
+		TileMap->TileChunkCountY = 8;
 
 		TileMap->TileChunks = PushArray(&GameState->WorldArena, TileMap->TileChunkCountX * TileMap->TileChunkCountY, tile_chunk);
 
