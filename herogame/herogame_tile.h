@@ -5,8 +5,8 @@ struct tile_map_position
 	uint32 AbsTileX;
 	uint32 AbsTileY;
 
-	real32 TileRelX;			// tilemapÖÐÏà¶ÔÓÚ¸ñ×ÓÄÚµÄÎ»ÖÃx
-	real32 TileRelY;			// tilemapÖÐÏà¶ÔÓÚ¸ñ×ÓÄÚµÄÎ»ÖÃy
+	real32 TileRelX;
+	real32 TileRelY;			
 };
 
 struct tile_chunk_position 
