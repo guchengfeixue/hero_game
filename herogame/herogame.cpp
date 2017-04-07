@@ -62,6 +62,35 @@ internal void DrawRectangle(game_offscreen_buffer *Buffer, real32 RealMinX, real
 	}
 }
 
+#pragma pack(push, 1)
+struct bitmap_header
+{
+	uint16 FileType;
+	uint32 FileSize;
+	uint16 Reserved1;
+	uint16 Reserved2;
+	uint32 BitmapOffset;
+	uint32 Size;
+	int32 Width;
+	int32 Height;
+	uint16 Plances;
+	uint16 BitsPerPixel;
+};
+#pragma pack(pop)
+
+internal uint32 *DEBUGLoadBMP(thread_context *Thread, debug_platform_read_entire_file *ReadEntireFile, char *FileName)
+{
+	uint32 *Result = 0;
+	debug_read_file_result ReadResult = ReadEntireFile(Thread, FileName);
+	if (ReadResult.ContentsSize != 0)
+	{
+		bitmap_header *Header = (bitmap_header *)ReadResult.Contents;
+		uint32 *Pixels = (uint32 *)((uint8 *)ReadResult.Contents + Header->BitmapOffset);
+		Result = Pixels;
+	}
+	return (Result);
+}
+
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)))
@@ -73,6 +102,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	if (!Memory->IsInitialized)
 	{
+		GameState->PixelPointer = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "test/test_background.bmp");
 		GameState->PlayerP.AbsTileX = 1;
 		GameState->PlayerP.AbsTileY = 3;
 		GameState->PlayerP.OffsetX = 5.0f;
@@ -312,6 +342,16 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DrawRectangle(Buffer, PlayerLeft, PlayerTop, 
 		PlayerLeft + MetersToPixels * PlayerWidth, PlayerTop + MetersToPixels * PlayerHeight,
 		PlayerR, PlayerG, PlayerB);
+
+	uint32 *Source = GameState->PixelPointer;
+	uint32 *Dest = (uint32 *)Buffer->Memory;
+	for (int32 Y = 0; Y < Buffer->Height; ++Y)
+	{
+		for (int32 X = 0; X < Buffer->Width; ++X)
+		{
+			*Dest++ = *Source++;
+		}
+	}
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)

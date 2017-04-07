@@ -82,6 +82,7 @@ struct game_state
 	memory_arena WorldArena;
 	world *World;
 	tile_map_position PlayerP;
+	uint32 *PixelPointer;
 };
 
 #define HEROGAME_H
