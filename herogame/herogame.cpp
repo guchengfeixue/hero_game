@@ -121,6 +121,27 @@ struct bitmap_header
 };
 #pragma pack(pop)
 
+struct bit_scan_result
+{
+	bool32 Found;
+	uint32 Index;
+};
+
+inline bit_scan_result FindLeastSignifcantSetBit(uint32 Value)
+{
+	bit_scan_result Result = {};
+	for (uint32 Test = 0; Test < 32; ++Test)
+	{
+		if (Value & (1 << Test))
+		{
+			Result.Index= Test;
+			Result.Found = true;
+			break;
+		}
+	}
+	return (Result);
+}
+
 internal loaded_bitmap DEBUGLoadBMP(thread_context *Thread, debug_platform_read_entire_file *ReadEntireFile, char *FileName)
 {
 	loaded_bitmap Result = {};
@@ -133,13 +154,31 @@ internal loaded_bitmap DEBUGLoadBMP(thread_context *Thread, debug_platform_read_
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
 
+		uint32 RedMask = Header->RedMask;
+		uint32 GreenMask = Header->GreenMask;
+		uint32 BlueMask = Header->BlueMask;
+		uint32 AlphaMask = ~(RedMask | GreenMask | BlueMask);
+
+		bit_scan_result RedShift = FindLeastSignifcantSetBit(RedMask);
+		bit_scan_result GreenShift = FindLeastSignifcantSetBit(GreenMask);
+		bit_scan_result BlueShift = FindLeastSignifcantSetBit(BlueMask);
+		bit_scan_result AlphaShift = FindLeastSignifcantSetBit(AlphaMask);
+
+		Assert(RedShift.Found);
+		Assert(GreenShift.Found);
+		Assert(BlueShift.Found);
+		Assert(AlphaShift.Found);
+
 		uint32 *SourceDest = Pixels;
-		for (int32 Y = 0; Y < Header->Width; Y++)
+		for (int32 Y = 0; Y < Header->Height; Y++)
 		{
-			for (int32 X = 0; X < Header->Height; X++)
+			for (int32 X = 0; X < Header->Width; X++)
 			{
-				*SourceDest = (*SourceDest >> 8) | (*SourceDest << 24);
-				++SourceDest;
+				uint32 C = *SourceDest;
+				*SourceDest++ = ((((C >> AlphaShift.Index) & 0xFF) << 24) |
+								(((C >> RedShift.Index) & 0xFF) << 16) |
+								(((C >> GreenShift.Index) & 0xFF) << 8) |
+								(((C >> BlueShift.Index) & 0xFF) << 0) );
 			}
 		}
 	}
