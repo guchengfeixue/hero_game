@@ -87,7 +87,25 @@ internal void DrawBitmap(game_offscreen_buffer *Buffer, loaded_bitmap *Bitmap, r
 		uint32 *Source = SourceRow;
 		for (int X = MinX; X < MaxX; ++X)
 		{
-			*Dest++ = *Source++;
+			real32 A = (real32)((*Source >> 24) & 0xFF) / 255.0f;
+			real32 SR = (real32)((*Source >> 16) & 0xFF);
+			real32 SG = (real32)((*Source >> 8) & 0xFF);
+			real32 SB = (real32)((*Source >> 0) & 0xFF);
+
+			real32 DR = (real32)((*Dest >> 16) & 0xFF);
+			real32 DG = (real32)((*Dest >> 8) & 0xFF);
+			real32 DB = (real32)((*Dest >> 0) & 0xFF);
+
+			real32 R = (1.0f - A) * DR + A * SR;
+			real32 G = (1.0f - A) * DG + A * SG;
+			real32 B = (1.0f - A) * DB + A * SB;
+
+			*Dest = (((uint32)(R + 0.5f) << 16) |
+				((uint32)(G + 0.5f) << 8) |
+				((uint32)(B + 0.5f) << 0));
+
+			++Dest;
+			++Source;
 		}
 		DestRow += Buffer->Pitch;
 		SourceRow -= Bitmap->Width;
@@ -121,27 +139,6 @@ struct bitmap_header
 };
 #pragma pack(pop)
 
-struct bit_scan_result
-{
-	bool32 Found;
-	uint32 Index;
-};
-
-inline bit_scan_result FindLeastSignifcantSetBit(uint32 Value)
-{
-	bit_scan_result Result = {};
-	for (uint32 Test = 0; Test < 32; ++Test)
-	{
-		if (Value & (1 << Test))
-		{
-			Result.Index= Test;
-			Result.Found = true;
-			break;
-		}
-	}
-	return (Result);
-}
-
 internal loaded_bitmap DEBUGLoadBMP(thread_context *Thread, debug_platform_read_entire_file *ReadEntireFile, char *FileName)
 {
 	loaded_bitmap Result = {};
@@ -154,15 +151,17 @@ internal loaded_bitmap DEBUGLoadBMP(thread_context *Thread, debug_platform_read_
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
 
+		Assert(Header->Compression == 3);
+
 		uint32 RedMask = Header->RedMask;
 		uint32 GreenMask = Header->GreenMask;
 		uint32 BlueMask = Header->BlueMask;
 		uint32 AlphaMask = ~(RedMask | GreenMask | BlueMask);
 
-		bit_scan_result RedShift = FindLeastSignifcantSetBit(RedMask);
-		bit_scan_result GreenShift = FindLeastSignifcantSetBit(GreenMask);
-		bit_scan_result BlueShift = FindLeastSignifcantSetBit(BlueMask);
-		bit_scan_result AlphaShift = FindLeastSignifcantSetBit(AlphaMask);
+		bit_scan_result RedShift = FindLeastSignificantSetBit(RedMask);
+		bit_scan_result GreenShift = FindLeastSignificantSetBit(GreenMask);
+		bit_scan_result BlueShift = FindLeastSignificantSetBit(BlueMask);
+		bit_scan_result AlphaShift = FindLeastSignificantSetBit(AlphaMask);
 
 		Assert(RedShift.Found);
 		Assert(GreenShift.Found);
