@@ -1,4 +1,4 @@
-#include "herogame.h"
+#include "herogame_platform.h"
 
 #include <windows.h>
 #include <stdio.h>
