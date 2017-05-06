@@ -1,15 +1,22 @@
 #if !defined(HEROGAME_MATH_H)
 
-struct v2
+
+union v2
 {
-	real32 X, Y;
-	real32 &operator[](int Index)
+	struct
 	{
-		return ((&X)[Index]);
-	}
-	inline v2 &operator*=(real32 A);
-	inline v2 &operator+=(v2 A);
+		real32 X, Y;
+	};
+	real32 E[2];
 };
+
+inline v2 V2(real32 X, real32 Y)
+{
+	v2 Result;
+	Result.X = X;
+	Result.Y = Y;
+	return (Result);
+}
 
 inline v2 operator*(real32 A, v2 B)
 {
@@ -19,10 +26,16 @@ inline v2 operator*(real32 A, v2 B)
 	return (Result);
 }
 
-inline v2 &v2::operator*=(real32 A)
+inline v2 operator*(v2 B, real32 A)
 {
-	*this = A * (*this);
-	return (*this);
+	v2 Result = A * B;
+	return (Result);
+}
+
+inline v2 &operator*=(v2 &B, real32 A)
+{
+	B = A * B;
+	return (B);
 }
 
 inline v2 operator-(v2 A)
@@ -41,10 +54,10 @@ inline v2 operator+(v2 A, v2 B)
 	return (Result);
 }
 
-inline v2& v2::operator+=(v2 A)
+inline v2& operator+=(v2 &A, v2 B)
 {
-	*this = *this + A;
-	return (*this);
+	A = A + B;
+	return A;
 }
 
 inline v2 operator-(v2 A, v2 B)
