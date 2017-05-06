@@ -87,6 +87,7 @@
   <ItemGroup>
     <ClInclude Include="herogame.h" />
     <ClInclude Include="herogame_intrinsics.h" />
+    <ClInclude Include="herogame_math.h" />
     <ClInclude Include="herogame_platform.h" />
     <ClInclude Include="herogame_random.h" />
     <ClInclude Include="herogame_tile.h" />
