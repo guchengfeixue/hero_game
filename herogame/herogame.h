@@ -26,6 +26,7 @@ void *PushSize_(memory_arena *Arena, memory_index Size)
 	return (Result);
 }
 
+#include "herogame_math.h"
 #include "herogame_intrinsics.h"
 #include "herogame_tile.h"
 
