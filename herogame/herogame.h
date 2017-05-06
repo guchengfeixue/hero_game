@@ -1,16 +1,6 @@
 #if !defined(HEROGAME_H)
 #include "herogame_platform.h"
 
-/*
-HEROGAME_INTERNAL:
-0 - Build for public release
-1 - Build for developer only
-
-HEROGAME_SLOW:
-0 - Not slow code allowed!
-1 - Slow code welcom.
-*/
-
 struct memory_arena
 {
 	memory_index Size;
