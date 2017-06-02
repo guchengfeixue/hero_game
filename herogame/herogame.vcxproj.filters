@@ -44,5 +44,8 @@
     <ClInclude Include="herogame_random.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="herogame_math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,16 +1,6 @@
 #if !defined(HEROGAME_H)
 #include "herogame_platform.h"
 
-/*
-HEROGAME_INTERNAL:
-0 - Build for public release
-1 - Build for developer only
-
-HEROGAME_SLOW:
-0 - Not slow code allowed!
-1 - Slow code welcom.
-*/
-
 struct memory_arena
 {
 	memory_index Size;
@@ -36,6 +26,7 @@ void *PushSize_(memory_arena *Arena, memory_index Size)
 	return (Result);
 }
 
+#include "herogame_math.h"
 #include "herogame_intrinsics.h"
 #include "herogame_tile.h"
 
@@ -67,6 +58,7 @@ struct game_state
 
 	tile_map_position CameraP;
 	tile_map_position PlayerP;
+	v2 dPlayerP;
 
 	loaded_bitmap Backdrop;
 	uint32 HeroFacingDirection;

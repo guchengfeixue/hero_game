@@ -1,5 +1,15 @@
 #if !defined(HEROGAME_PLATFORM_H)
 
+/*
+HEROGAME_INTERNAL:
+0 - Build for public release
+1 - Build for developer only
+
+HEROGAME_SLOW:
+0 - Not slow code allowed!
+1 - Slow code welcom.
+*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
