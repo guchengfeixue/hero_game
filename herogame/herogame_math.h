@@ -80,5 +80,11 @@ inline real32 Inner(v2 A, v2 B)
 	return (Result);
 }
 
+inline real32 LengthSq(v2 A)
+{
+	real32 Result = Inner(A, A);
+	return (Result);
+}
+
 #define HEROGAME_MATH_H
 #endif
