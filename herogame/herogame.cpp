@@ -198,6 +198,17 @@ internal loaded_bitmap DEBUGLoadBMP(thread_context *Thread, debug_platform_read_
 	return (Result);
 }
 
+internal void InitializePlayer(entity *Entity)
+{
+	*Entity = {};
+
+	Entity->Exists = true;
+	Entity->P.AbsTileX = 1;
+	Entity->P.AbsTileY = 3;
+	Entity->P.Offset.X = 5.0f;
+	Entity->P.Offset.Y = 5.0f;
+}
+
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)))
@@ -426,7 +437,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GameState->dPlayerP = ddPlayer * Input->dtForFrame + GameState->dPlayerP;
 			NewPlayerP = RecanonicalizePosition(TileMap, NewPlayerP); 
 			// TODO: delta function that auto-recanonicalizes
-#if 0
+#if 1
 			tile_map_position PlayerLeft = NewPlayerP;
 			PlayerLeft.Offset.X -= 0.5f * PlayerWidth;
 			PlayerLeft = RecanonicalizePosition(TileMap, PlayerLeft);

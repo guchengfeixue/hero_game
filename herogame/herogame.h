@@ -51,14 +51,22 @@ struct hero_bitmaps
 	loaded_bitmap Torso;
 };
 
+struct entity
+{
+	bool32 Exists;
+	tile_map_position P;
+	v2 dp;
+};
+
 struct game_state
 {
 	memory_arena WorldArena;
 	world *World;
 
 	tile_map_position CameraP;
-	tile_map_position PlayerP;
-	v2 dPlayerP;
+
+	uint32 PlayerIndexForController[ArrayCount(((game_input *)0)->Controllers)];
+	entity Entities[256];
 
 	loaded_bitmap Backdrop;
 	uint32 HeroFacingDirection;
