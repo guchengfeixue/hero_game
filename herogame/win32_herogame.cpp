@@ -691,11 +691,11 @@ internal void Win32ProcessPendingMessages(win32_state *State, game_controller_in
 					else if (VKCode == VK_ESCAPE)
 					{
 						GlobalRunning = false;
-						Win32ProcessKeyBoardMessage(&KeyboardController->Start, IsDown);
+						Win32ProcessKeyBoardMessage(&KeyboardController->Back, IsDown);
 					}
 					else if (VKCode == VK_SPACE)
 					{
-						Win32ProcessKeyBoardMessage(&KeyboardController->Back, IsDown);
+						Win32ProcessKeyBoardMessage(&KeyboardController->Start, IsDown);
 					}
 #if HEROGAME_INTERNAL
 					else if (VKCode == 'P')
