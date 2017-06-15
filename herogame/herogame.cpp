@@ -206,8 +206,10 @@ inline entity *GetEntity(game_state *GameState, uint32 Index)
 	return (Entity);
 }
 
-internal void InitializePlayer(entity *Entity)
+internal void InitializePlayer(game_state *GameState, uint32 EntityIndex)
 {
+	entity *Entity = GetEntity(GameState, EntityIndex);
+
 	Entity->Exists = true;
 	Entity->P.AbsTileX = 1;
 	Entity->P.AbsTileY = 3;
@@ -215,6 +217,9 @@ internal void InitializePlayer(entity *Entity)
 	Entity->P.Offset.Y = 5.0f;
 	Entity->Height = 1.4f;
 	Entity->Width = 0.75f * Entity->Height;
+
+	if (!GetEntity(GameState, GameState->CameraFollowingEntityIndex))
+		GameState->CameraFollowingEntityIndex = EntityIndex;
 }
 
 internal uint32 AddEntity(game_state *GameState)
@@ -333,7 +338,11 @@ internal void MovePlayer(game_state *GameState, entity *Entity, real32 dt, v2 dd
 			--Entity->P.AbsTileZ;
 	}
 
-	if (AbsoluteValue(Entity->dp.X) > AbsoluteValue(Entity->dp.Y))
+	if ((Entity->dp.X == 0.0f) && (Entity->dp.Y == 0.0f))
+	{
+		//NOTE: Leave facing direction whatever it was
+	}
+	else if (AbsoluteValue(Entity->dp.X) > AbsoluteValue(Entity->dp.Y))
 	{
 		if (Entity->dp.X > 0)
 			Entity->FacingDirection = 0;
@@ -549,8 +558,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			if (Controller->Start.EndedDown)
 			{
 				uint32 EntityIndex = AddEntity(GameState);
-				ControllingEntity = GetEntity(GameState, EntityIndex);
-				InitializePlayer(ControllingEntity);
+				InitializePlayer(GameState, EntityIndex);
 				GameState->PlayerIndexForController[ControllerIndex] = EntityIndex;
 			}
 		}
