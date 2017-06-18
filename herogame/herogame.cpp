@@ -218,8 +218,8 @@ internal void InitializePlayer(game_state *GameState, uint32 EntityIndex)
 	Entity->Exists = true;
 	Entity->P.AbsTileX = 1;
 	Entity->P.AbsTileY = 3;
-	Entity->P.Offset.X = 5.0f;
-	Entity->P.Offset.Y = 5.0f;
+	Entity->P.Offset_.X = .0f;
+	Entity->P.Offset_.Y = .0f;
 	Entity->Height = 1.4f;
 	Entity->Width = 0.75f * Entity->Height;
 
@@ -266,9 +266,7 @@ internal void MovePlayer(game_state *GameState, entity *Entity, real32 dt, v2 dd
 	tile_map_position OldPlayerP = Entity->P;
 	v2 PlayerDelta = (0.5f * ddP * Square(dt) + Entity->dp* dt);
 	Entity->dp = ddP * dt + Entity->dp;
-	tile_map_position NewPlayerP = OldPlayerP;
-	NewPlayerP.Offset += PlayerDelta;
-	NewPlayerP = RecanonicalizePosition(TileMap, NewPlayerP);
+	tile_map_position NewPlayerP = Offset(TileMap, OldPlayerP, PlayerDelta);
 #if 0
 	tile_map_position PlayerLeft = NewPlayerP;
 	PlayerLeft.Offset.X -= 0.5f * Entity->Width;
@@ -344,9 +342,7 @@ internal void MovePlayer(game_state *GameState, entity *Entity, real32 dt, v2 dd
 			}
 		}
 	}
-	NewPlayerP = OldPlayerP;
-	NewPlayerP.Offset += tMin * PlayerDelta;
-	Entity->P = NewPlayerP;
+	Entity->P = Offset(TileMap, OldPlayerP, tMin * PlayerDelta);
 #endif
 
 	if (!AreOnSameTile(&OldPlayerP, &Entity->P))
@@ -624,8 +620,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				if ((Column == GameState->CameraP.AbsTileX) && (Row == GameState->CameraP.AbsTileY))
 					Gray = 0.0f;
 				v2 TileSide = { 0.5f * TileSideInPixels, 0.5f * TileSideInPixels };
-				v2 Cen = { ScreenCenterX - MetersToPixels * GameState->CameraP.Offset.X + ((real32)RelColumn) * TileSideInPixels ,
-					ScreenCenterY + MetersToPixels * GameState->CameraP.Offset.Y - ((real32)RelRow) * TileSideInPixels};
+				v2 Cen = { ScreenCenterX - MetersToPixels * GameState->CameraP.Offset_.X + ((real32)RelColumn) * TileSideInPixels ,
+					ScreenCenterY + MetersToPixels * GameState->CameraP.Offset_.Y - ((real32)RelRow) * TileSideInPixels};
 				v2 Min = Cen - 0.9f * TileSide;
 				v2 Max = Cen + TileSide;
 				DrawRectangle(Buffer, Min, Max, Gray, Gray, Gray);
@@ -667,25 +663,3 @@ extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)
 	game_state *GameState = (game_state *)Memory->PermanentStorage;
 	GameOutputSound(GameState, SoundBuffer, 400);
 }
-
-
-//internal void RenderWeirdGradient(game_offscreen_buffer *Buffer, int BlueOffset, int GreenOffset)
-//{
-//	uint8 *Row = (uint8 *)Buffer->Memory;
-//	for (int Y = 0; Y < Buffer->Height; ++Y)
-//	{
-//		uint32 *Pixel = (uint32 *)Row;
-//		for (int X = 0; X < Buffer->Width; ++X)
-//		{
-//			uint8 Blue = (uint8)(X + BlueOffset);
-//			uint8 Green = (uint8)(Y + GreenOffset);
-//			/*
-//			Memory:		BB GG RR xx
-//			Register:	xx RR GG BB
-//			Pixel (32-bits)
-//			*/
-//			*Pixel++ = ((Green << 16) | Blue);
-//		}
-//		Row += Buffer->Pitch;
-//	}
-//}
