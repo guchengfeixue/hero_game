@@ -1,9 +1,27 @@
 #if !defined(HEROGAME_INTRINSICS_H)
 #include "math.h"
 
+inline real32 SquareRoot(real32 Real32)
+{
+	real32 Result = sqrtf(Real32);
+	return (Result);
+}
+
 inline real32 AbsoluteValue(real32 Real32)
 {
 	real32 Result = (real32)fabs(Real32);
+	return (Result);
+}
+
+inline uint32 RotateLeft(uint32 Value, int32 Amount)
+{
+	uint32 Result = _rotl(Value, Amount);
+	return (Result);
+}
+
+inline uint32 RotateRight(uint32 Value, int32 Amount)
+{
+	uint32 Result = _rotr(Value, Amount);
 	return (Result);
 }
 
@@ -22,6 +40,12 @@ inline uint32 RoundReal32ToUInt32(real32 Real32)
 inline int32 FloorReal32ToInt32(real32 Real32)
 {
 	int32 Result = (int32)floorf(Real32);
+	return (Result);
+}
+
+inline int32 CeilReal32ToInt32(real32 Real32)
+{
+	int32 Result = (int32)ceilf(Real32);
 	return (Result);
 }
 

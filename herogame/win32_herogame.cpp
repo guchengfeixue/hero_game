@@ -1353,7 +1353,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 						char FPSBuffer[256];
 						_snprintf_s(FPSBuffer, sizeof(FPSBuffer), "%.02fms/f, %.02ff/s, %.02fmc/f\n", MSPerFrame, FPS, MCPF);
-						OutputDebugStringA(FPSBuffer);
+						//OutputDebugStringA(FPSBuffer);
 #endif
 
 #if HEROGAME_INTERNAL
