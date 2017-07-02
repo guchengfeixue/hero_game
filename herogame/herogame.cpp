@@ -70,8 +70,8 @@ internal void DrawBitmap(game_offscreen_buffer *Buffer, loaded_bitmap *Bitmap, r
 
 	int32 MinX = RoundReal32ToInt32(RealX);
 	int32 MinY = RoundReal32ToInt32(RealY);
-	int32 MaxX = RoundReal32ToInt32(RealX + (real32)Bitmap->Width);
-	int32 MaxY = RoundReal32ToInt32(RealY + (real32)Bitmap->Height);
+	int32 MaxX = MinX + Bitmap->Width;
+	int32 MaxY = MinY + Bitmap->Height;
 
 	int32 SourceOffsetX = 0;
 	if (MinX < 0)
