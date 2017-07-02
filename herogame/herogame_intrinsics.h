@@ -13,15 +13,26 @@ inline real32 AbsoluteValue(real32 Real32)
 	return (Result);
 }
 
+#undef COMPILER_MSVC
+#define COMPILER_MSVC 0
+
 inline uint32 RotateLeft(uint32 Value, int32 Amount)
 {
+#if COMPILER_MSVC
 	uint32 Result = _rotl(Value, Amount);
+#else
+	uint32 Result = (Amount > 0) ? (Value << Amount) : (Value >> -Amount);
+#endif
 	return (Result);
 }
 
 inline uint32 RotateRight(uint32 Value, int32 Amount)
 {
+#if COMPILER_MSVC
 	uint32 Result = _rotr(Value, Amount);
+#else
+	uint32 Result = (Amount > 0) ? (Value >> Amount) : (Value << -Amount);
+#endif
 	return (Result);
 }
 
