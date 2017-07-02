@@ -21,7 +21,8 @@ inline uint32 RotateLeft(uint32 Value, int32 Amount)
 #if COMPILER_MSVC
 	uint32 Result = _rotl(Value, Amount);
 #else
-	uint32 Result = (Amount > 0) ? (Value << Amount) : (Value >> -Amount);
+	Amount &= 31; // Amount为负数，则向左旋转32 - Amount低位和0x1F的与
+	uint32 Result = ((Value << Amount) | (Value >> (32 - Amount)));
 #endif
 	return (Result);
 }
@@ -31,7 +32,8 @@ inline uint32 RotateRight(uint32 Value, int32 Amount)
 #if COMPILER_MSVC
 	uint32 Result = _rotr(Value, Amount);
 #else
-	uint32 Result = (Amount > 0) ? (Value >> Amount) : (Value << -Amount);
+	Amount &= 31;
+	uint32 Result = ((Value >> Amount) | (Value << (32 - Amount)));
 #endif
 	return (Result);
 }

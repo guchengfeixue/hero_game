@@ -872,7 +872,6 @@ internal void Win32PlayBackInput(win32_state *State, game_input *NewInput)
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int)
 {
-
 	win32_state Win32State = {};
 
 	LARGE_INTEGER PerfCountFrequencyResult;
