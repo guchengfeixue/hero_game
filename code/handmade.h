@@ -63,61 +63,47 @@ inline game_controller_input *GetController(game_input *Input, int unsigned Cont
 //
 //
 
-struct canonical_position
+struct memory_arena
 {
-    int32 TileMapX;
-    int32 TileMapY;
-
-    int32 TileX;
-    int32 TileY;
-
-    // NOTE(casey): This is tile-relative X and Y
-    // TODO(casey): These are still in pixels... :/
-    real32 TileRelX;
-    real32 TileRelY;
+    memory_index Size;
+    uint8 *Base;
+    memory_index Used;
 };
 
-// TODO(casey): Is this ever necessary?
-struct raw_position
+internal void
+InitializeArena(memory_arena *Arena, memory_index Size, uint8 *Base)
 {
-    int32 TileMapX;
-    int32 TileMapY;
+    Arena->Size = Size;
+    Arena->Base = Base;
+    Arena->Used = 0;
+}
 
-    // NOTE(casey): Tile-map relative X and Y
-    real32 X;
-    real32 Y;
-};
-
-struct tile_map
+#define PushStruct(Arena, type) (type *)PushSize_(Arena, sizeof(type))
+#define PushArray(Arena, Count, type) (type *)PushSize_(Arena, (Count)*sizeof(type))
+void *
+PushSize_(memory_arena *Arena, memory_index Size)
 {
-    uint32 *Tiles;
-};
+    Assert((Arena->Used + Size) <= Arena->Size);
+    void *Result = Arena->Base + Arena->Used;
+    Arena->Used += Size;
+    
+    return(Result);
+}
+
+#include "handmade_intrinsics.h"
+#include "handmade_tile.h"
 
 struct world
-{
-    int32 CountX;
-    int32 CountY;
-    
-    real32 UpperLeftX;
-    real32 UpperLeftY;
-    real32 TileWidth;
-    real32 TileHeight;
-
-    // TODO(casey): Beginner's sparseness
-    int32 TileMapCountX;
-    int32 TileMapCountY;
-    
-    tile_map *TileMaps;
+{    
+    tile_map *TileMap;
 };
 
 struct game_state
 {
-// TODO(casey): Player state should be canonical position now?
-    int32 PlayerTileMapX;
-    int32 PlayerTileMapY;
+    memory_arena WorldArena;
+    world *World;
     
-    real32 PlayerX;
-    real32 PlayerY;
+    tile_map_position PlayerP;
 };
 
 #define HANDMADE_H
