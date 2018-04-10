@@ -9,6 +9,9 @@
 
 #include "handmade_platform.h"
 
+#define Minimum(A, B) ((A < B) ? (A) : (B))
+#define Maximum(A, B) ((A > B) ? (A) : (B))
+
 //
 //
 //
@@ -40,6 +43,7 @@ PushSize_(memory_arena *Arena, memory_index Size)
     return(Result);
 }
 
+#include "handmade_math.h"
 #include "handmade_intrinsics.h"
 #include "handmade_tile.h"
 
@@ -64,16 +68,29 @@ struct hero_bitmaps
     loaded_bitmap Torso;
 };
 
+struct entity
+{
+    bool32 Exists;
+    tile_map_position P;
+    v2 dP;
+    uint32 FacingDirection;
+    real32 Width, Height;
+};
+
 struct game_state
 {
     memory_arena WorldArena;
     world *World;
-    
+
+    // TODO(casey): Should we allow split-screen?
+    uint32 CameraFollowingEntityIndex;
     tile_map_position CameraP;
-    tile_map_position PlayerP;
+
+    uint32 PlayerIndexForController[ArrayCount(((game_input *)0)->Controllers)];
+    uint32 EntityCount;
+    entity Entities[256];
 
     loaded_bitmap Backdrop;
-    uint32 HeroFacingDirection;
     hero_bitmaps HeroBitmaps[4];
 };
 
