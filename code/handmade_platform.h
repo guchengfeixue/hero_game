@@ -7,12 +7,55 @@
    $Notice: (C) Copyright 2014 by Molly Rocket, Inc. All Rights Reserved. $
    ======================================================================== */
 
+/*
+  NOTE(casey):
+
+  HANDMADE_INTERNAL:
+    0 - Build for public release
+    1 - Build for developer only
+
+  HANDMADE_SLOW:
+    0 - Not slow code allowed!
+    1 - Slow code welcome.
+*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-#include <stdint.h>
 
+//
+// NOTE(casey): Compilers
+//
+    
+#if !defined(COMPILER_MSVC)
+#define COMPILER_MSVC 0
+#endif
+    
+#if !defined(COMPILER_LLVM)
+#define COMPILER_LLVM 0
+#endif
+
+#if !COMPILER_MSVC && !COMPILER_LLVM
+#if _MSC_VER
+#undef COMPILER_MSVC
+#define COMPILER_MSVC 1
+#else
+// TODO(casey): Moar compilerz!!!
+#undef COMPILER_LLVM
+#define COMPILER_LLVM 1
+#endif
+#endif
+
+#if COMPILER_MSVC
+#include <intrin.h>
+#endif
+    
+//
+// NOTE(casey): Types
+//
+#include <stdint.h>
+#include <stddef.h>
+    
 typedef int8_t int8;
 typedef int16_t int16;
 typedef int32_t int32;
@@ -28,6 +71,36 @@ typedef size_t memory_index;
     
 typedef float real32;
 typedef double real64;
+
+#define internal static
+#define local_persist static
+#define global_variable static
+
+#define Pi32 3.14159265359f
+
+#if HANDMADE_SLOW
+// TODO(casey): Complete assertion macro - don't worry everyone!
+#define Assert(Expression) if(!(Expression)) {*(int *)0 = 0;}
+#else
+#define Assert(Expression)
+#endif
+
+#define Kilobytes(Value) ((Value)*1024LL)
+#define Megabytes(Value) (Kilobytes(Value)*1024LL)
+#define Gigabytes(Value) (Megabytes(Value)*1024LL)
+#define Terabytes(Value) (Gigabytes(Value)*1024LL)
+
+#define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
+// TODO(casey): swap, min, max ... macros???
+
+inline uint32
+SafeTruncateUInt64(uint64 Value)
+{
+    // TODO(casey): Defines for maximum values
+    Assert(Value <= 0xFFFFFFFF);
+    uint32 Result = (uint32)Value;
+    return(Result);
+}
 
 typedef struct thread_context
 {
@@ -160,6 +233,14 @@ typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 // or asking about it, etc.
 #define GAME_GET_SOUND_SAMPLES(name) void name(thread_context *Thread, game_memory *Memory, game_sound_output_buffer *SoundBuffer)
 typedef GAME_GET_SOUND_SAMPLES(game_get_sound_samples);
+
+inline game_controller_input *GetController(game_input *Input, int unsigned ControllerIndex)
+{
+    Assert(ControllerIndex < ArrayCount(Input->Controllers));
+    
+    game_controller_input *Result = &Input->Controllers[ControllerIndex];
+    return(Result);
+}
 
 #ifdef __cplusplus
 }

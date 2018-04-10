@@ -7,6 +7,13 @@
    $Notice: (C) Copyright 2014 by Molly Rocket, Inc. All Rights Reserved. $
    ======================================================================== */
 
+struct tile_map_difference
+{
+    real32 dX;
+    real32 dY;
+    real32 dZ;
+};
+
 struct tile_map_position
 {
     // NOTE(casey): These are fixed point tile locations.  The high
@@ -16,10 +23,9 @@ struct tile_map_position
     uint32 AbsTileY;
     uint32 AbsTileZ;
 
-    // TODO(casey): Should these be from the center of a tile?
-    // TODO(casey): Rename to offset X and Y
-    real32 TileRelX;
-    real32 TileRelY;
+    // NOTE(casey): These are the offsets from the tile center
+    real32 OffsetX;
+    real32 OffsetY;
 };
 
 struct tile_chunk_position
